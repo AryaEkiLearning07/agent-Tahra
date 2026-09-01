@@ -13,13 +13,15 @@ import {
   TrendingUp,
   Cpu,
   Terminal,
+  ChevronRight,
+  Eye,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 
 /**
- * Ultra-Premium, Highly Informative Multi-Agent Thinking Visualizer
+ * Ultra-Premium, Highly Informative Multi-Agent Thinking Visualizer with Clickable Timeline Inspection
  */
 export function AgentThinkingModal({
   isOpen,
@@ -31,6 +33,8 @@ export function AgentThinkingModal({
   vetoReason = '',
   onClose,
 }) {
+  const [inspectedStage, setInspectedStage] = useState(null);
+
   if (!isOpen) return null;
 
   const agentDefinitions = [
@@ -41,6 +45,7 @@ export function AgentThinkingModal({
       icon: <Search className="w-4 h-4" />,
       liveAction: 'Menganalisis Competitor Proxy & memetakan 3 Pain Points konsumen...',
       focus: 'Proxy Pesaing & USP',
+      quickSummary: 'Menemukan kompetitor terdekat, memetakan segmentasi audiens, dan merumuskan Unique Selling Proposition (USP).',
     },
     {
       code: '2',
@@ -49,6 +54,7 @@ export function AgentThinkingModal({
       icon: <Target className="w-4 h-4" />,
       liveAction: 'Mengkalkulasi Unit Economics, memilih format (9:16) & batas plafon CPA...',
       focus: 'Margin Check & Medan Iklan',
+      quickSummary: 'Memvalidasi margin laba (>20%), memilih platform channel, dan menetapkan batas maksimal CPA per konversi.',
     },
     {
       code: '3',
@@ -57,6 +63,7 @@ export function AgentThinkingModal({
       icon: <FileText className="w-4 h-4" />,
       liveAction: 'Merangkai Naskah Video 15s (Hook-Body-CTA) & caption psikologi PAS...',
       focus: 'Naskah PAS & Video 15s',
+      quickSummary: 'Menyusun naskah video 15 detik (Hook 0-3s, Body 3-10s, CTA) dan caption psikologi konversi PAS.',
     },
     {
       code: '4',
@@ -65,6 +72,7 @@ export function AgentThinkingModal({
       icon: <ImageIcon className="w-4 h-4" />,
       liveAction: 'Merancang prompt Text-to-Image 8K & menyelaraskan komposisi pencahayaan...',
       focus: 'Prompt Studio & Lighting',
+      quickSummary: 'Merangkai prompt visual studio 8K dengan pencahayaan sinematik dan rasio yang sesuai algoritma placement.',
     },
     {
       code: '5',
@@ -73,10 +81,10 @@ export function AgentThinkingModal({
       icon: <TrendingUp className="w-4 h-4" />,
       liveAction: 'Validasi silang konsistensi data, meracik Payload Ads Manager & simulasi ROAS...',
       focus: 'QC & Formula ROAS',
+      quickSummary: 'Melakukan Quality Control silang, menyusun JSON Ads Manager siap pakai, dan memproyeksikan ROAS secara matematis.',
     },
   ];
 
-  const activeAgent = agentDefinitions[currentStageIndex] || agentDefinitions[0];
   const progressPercent = Math.min(100, Math.round(((currentStageIndex + 1) / 5) * 100));
 
   return (
@@ -112,7 +120,7 @@ export function AgentThinkingModal({
                 </span>
                 <span className="text-neutral-600 text-xs">•</span>
                 <span className="text-xs font-bold text-neutral-400 font-mono">
-                  {progressPercent}% Complete
+                  {progressPercent}% Selesai
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight">
@@ -145,7 +153,7 @@ export function AgentThinkingModal({
           </div>
         ) : (
           <>
-            {/* Progress Bar */}
+            {/* Progress Bar with glowing indicator */}
             <div className="w-full bg-neutral-900 rounded-full h-2 overflow-hidden p-0.5 border border-neutral-800">
               <div
                 className="bg-gradient-to-r from-rose-600 via-red-500 to-rose-400 h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(244,63,94,0.8)]"
@@ -153,63 +161,89 @@ export function AgentThinkingModal({
               />
             </div>
 
-            {/* 5-Agent Stage Cards */}
+            {/* 5-Agent Interactive Stage Timeline */}
             <div className="grid grid-cols-1 gap-2.5">
               {agentDefinitions.map((agent, idx) => {
                 const isDone = idx < currentStageIndex;
                 const isActive = idx === currentStageIndex;
                 const isPending = idx > currentStageIndex;
+                const isSelected = inspectedStage === idx;
 
                 return (
                   <div
                     key={agent.code}
+                    onClick={() => {
+                      if (isDone || isActive) {
+                        setInspectedStage(isSelected ? null : idx);
+                      }
+                    }}
                     className={cn(
-                      'p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3',
+                      'p-3 rounded-2xl border transition-all duration-300 flex flex-col gap-2.5',
+                      (isDone || isActive) && 'cursor-pointer hover:border-rose-500/60',
                       isActive
                         ? 'bg-rose-950/30 border-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.15)] ring-1 ring-rose-500/30'
                         : isDone
-                        ? 'bg-neutral-950/60 border-neutral-800/80 opacity-90'
+                        ? 'bg-neutral-950/60 border-neutral-800/80 opacity-95'
                         : 'bg-neutral-950/20 border-neutral-900/50 opacity-40'
                     )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={cn(
-                          'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors',
-                          isDone
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                            : isActive
-                            ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50 animate-pulse'
-                            : 'bg-neutral-900 text-neutral-600 border border-neutral-800'
-                        )}
-                      >
-                        {isDone ? <CheckCircle2 className="w-4 h-4" /> : agent.icon}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-white truncate">
-                            {agent.name}
-                          </span>
-                          <span className="text-[10px] text-neutral-500 font-bold px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 shrink-0">
-                            {agent.focus}
-                          </span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={cn(
+                            'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors',
+                            isDone
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                              : isActive
+                              ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50 animate-pulse'
+                              : 'bg-neutral-900 text-neutral-600 border border-neutral-800'
+                          )}
+                        >
+                          {isDone ? <CheckCircle2 className="w-4 h-4" /> : agent.icon}
                         </div>
-                        <p className="text-[11px] text-neutral-400 truncate mt-0.5 font-medium">
-                          {isActive ? agent.liveAction : agent.role}
-                        </p>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-white truncate">
+                              {agent.name}
+                            </span>
+                            <span className="text-[10px] text-neutral-500 font-bold px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 shrink-0">
+                              {agent.focus}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-400 truncate mt-0.5 font-medium">
+                            {isActive ? agent.liveAction : agent.role}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 font-mono text-[10px] font-black uppercase flex items-center gap-2">
+                        {isDone && (
+                          <span className="text-emerald-400 flex items-center gap-1">
+                            <span>SELESAI ✓</span>
+                            <Eye className="w-3 h-3 text-neutral-400" />
+                          </span>
+                        )}
+                        {isActive && (
+                          <span className="text-rose-400 flex items-center gap-1 animate-pulse">
+                            <Loader2 className="w-3 h-3 animate-spin" /> PROSES...
+                          </span>
+                        )}
+                        {isPending && <span className="text-neutral-600">MENUNGGU</span>}
                       </div>
                     </div>
 
-                    <div className="shrink-0 font-mono text-[10px] font-black uppercase">
-                      {isDone && <span className="text-emerald-400">SELESAI ✓</span>}
-                      {isActive && (
-                        <span className="text-rose-400 flex items-center gap-1 animate-pulse">
-                          <Loader2 className="w-3 h-3 animate-spin" /> PROSES...
-                        </span>
-                      )}
-                      {isPending && <span className="text-neutral-600">MENUNGGU</span>}
-                    </div>
+                    {/* Expandable Live Inspection Details */}
+                    {isSelected && (
+                      <div className="pt-2 border-t border-neutral-800/80 text-[11px] text-neutral-300 animate-in fade-in duration-200">
+                        <div className="p-2.5 rounded-xl bg-black/60 border border-neutral-800 leading-relaxed font-sans">
+                          <strong className="text-rose-400 block mb-1">
+                            {isDone ? '✅ Ringkasan Hasil Analisis:' : '⚡ Fokus Proses Saat Ini:'}
+                          </strong>
+                          <span>{agent.quickSummary}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
