@@ -20,6 +20,9 @@ import {
   Code2,
   CheckCircle2,
   Users,
+  Database,
+  Calculator,
+  Lightbulb,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -56,6 +59,7 @@ export default function CampaignDetail() {
     usp: 'Kualitas rasa autentik Nusantara tanpa bahan pengawet sintesis.',
     pain_points: ['Bosan dengan rasa sambal pasaran yang hambar', 'Sulit menemukan sambal higienis praktis'],
     competitor_proxy: 'Sambal Bu Rudy / Sambal Kemasan Supermarket',
+    data_foundation: 'Berdasarkan benchmark pasar kategori FMCG/Kuliner harga 20-50rb, produk memiliki penetrasi tinggi di segmen urban pekerja.',
   };
 
   const agent2 = result?.agent2_strategy || result?.financial_report || {
@@ -68,6 +72,7 @@ export default function CampaignDetail() {
     bidding_model: 'CPM',
     max_cpa_limit: 7000,
     strategic_rationale: 'Margin sangat sehat! Format video vertikal 9:16 di TikTok ideal untuk produk visual FMCG.',
+    data_foundation: 'Margin 58.3% (>30%) memberikan plafon CPA maksimal Rp 7.000 (40% margin) agar periklanan tetap menghasilkan laba bersih positif.',
   };
 
   const agent3 = result?.agent3_creative || result?.creative || {
@@ -80,6 +85,7 @@ export default function CampaignDetail() {
       body_3_10s: 'Bandingkan sambal biasa yang berminyak dingin vs Sambal TAHRA yang segar alami.',
       cta_10_15s: 'Klik link di bio sekarang, diskon 20% khusus 100 pembeli pertama!',
     },
+    data_foundation: 'Hook visual 3 detik pertama didesain khusus untuk menekan Drop-off Rate di TikTok dengan langsung mengekspos pain point rasa hambar.',
   };
 
   const agent4 = result?.agent4_visual || {
@@ -88,6 +94,7 @@ export default function CampaignDetail() {
     visual_mood: 'Cinematic, Moody, Artisan, Warm Red Glow',
     aspect_ratio: agent2.aspect_ratio || '9:16',
     recommended_composition: 'Centered macro shot on rustic wooden table with steam rising.',
+    data_foundation: 'Komposisi macro centered dengan rasio 9:16 terbukti meningkatkan Click-Through-Rate (CTR) hingga 35% dibandingkan foto polos tanpa staging.',
   };
 
   const agent5 = result?.agent5_deploy || {
@@ -116,9 +123,11 @@ export default function CampaignDetail() {
       roas_percentage: 105.0,
       roas_status: 'PROFIT',
       summary: 'Proyeksi ROAS positif (105%) dengan potensi laba bersih sejak awal kampanye.',
+      formula_breakdown: '1. Tayangan: (Rp 100.000 / CPM Rp 20.000) × 1.000 = 5.000 impresi\n2. Klik: 5.000 × CTR 2% = 100 klik\n3. Pembeli: 100 × CVR 3% = 3 checkout\n4. Omzet: 3 × Rp 35.000 = Rp 105.000\n5. HPP: 3 × Rp 15.000 = Rp 45.000\n6. Laba Bersih: Rp 105.000 - Rp 45.000 - Rp 100.000 = Rp 15.000\n7. ROAS: 105%',
     },
     tracking_link: `https://tahra.ai/track?id=${campaign?.id || id || '123'}`,
     deployment_status: 'DEPLOYED_SIMULATION',
+    data_foundation: 'Kalkulasi didasarkan pada benchmark industri CPM Rp 20.000, CTR standar 2%, dan Conversion Rate e-commerce 3%.',
   };
 
   const isVeto = agent2.financial_status === 'VETO' || result?.status === 'VETO';
@@ -180,52 +189,63 @@ export default function CampaignDetail() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-medium">
-              <div className="flex flex-col gap-4">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
-                    Unique Selling Proposition (USP)
-                  </span>
-                  <p className="text-white bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 font-semibold leading-relaxed">
-                    {agent1.usp}
-                  </p>
+            <CardContent className="p-0 flex flex-col gap-4 text-xs font-medium">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                      Unique Selling Proposition (USP)
+                    </span>
+                    <p className="text-white bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 font-semibold leading-relaxed">
+                      {agent1.usp}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                      Competitor Proxy (Pesaing Pasar Terdekat)
+                    </span>
+                    <p className="text-rose-400 bg-rose-950/20 p-2.5 rounded-xl border border-rose-500/30 font-bold">
+                      ⚔️ {agent1.competitor_proxy}
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
-                    Competitor Proxy (Pesaing Pasar Terdekat)
-                  </span>
-                  <p className="text-rose-400 bg-rose-950/20 p-2.5 rounded-xl border border-rose-500/30 font-bold">
-                    ⚔️ {agent1.competitor_proxy}
-                  </p>
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                      Target Demografi & Psikografi Konsumen
+                    </span>
+                    <p className="text-neutral-300 bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 leading-relaxed">
+                      <strong>{agent1.target_demography}</strong> — {agent1.audience_psychography}
+                    </p>
+                  </div>
+
+                  {agent1.pain_points && (
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                        Pain Points Pasar
+                      </span>
+                      <ul className="flex flex-col gap-1 text-neutral-300">
+                        {agent1.pain_points.map((p, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="text-rose-500 font-bold">•</span>
+                            <span>{p}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
+              {/* Data Foundation Callout */}
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-200 leading-relaxed flex items-start gap-2.5 mt-2">
+                <Database className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
-                    Target Demografi & Psikografi Konsumen
-                  </span>
-                  <p className="text-neutral-300 bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 leading-relaxed">
-                    <strong>{agent1.target_demography}</strong> — {agent1.audience_psychography}
-                  </p>
+                  <strong className="font-bold text-rose-400 block mb-0.5">Dasar Data & Riset Pasar:</strong>
+                  <span>{agent1.data_foundation}</span>
                 </div>
-
-                {agent1.pain_points && (
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
-                      Pain Points Pasar
-                    </span>
-                    <ul className="flex flex-col gap-1 text-neutral-300">
-                      {agent1.pain_points.map((p, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-rose-500 font-bold">•</span>
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -246,8 +266,8 @@ export default function CampaignDetail() {
               </div>
             </CardHeader>
 
-            <CardContent className="p-0">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+            <CardContent className="p-0 flex flex-col gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800">
                   <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
                     Platform Pilihan
@@ -297,8 +317,13 @@ export default function CampaignDetail() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs text-neutral-300 leading-relaxed font-medium">
-                <strong>Rasional Strategis:</strong> {agent2.strategic_rationale}
+              {/* Data Foundation Callout */}
+              <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 text-xs text-neutral-300 leading-relaxed flex items-start gap-2.5">
+                <Calculator className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="font-bold text-emerald-400 block mb-0.5">Dasar Perhitungan & Rasional Strategi:</strong>
+                  <span>{agent2.data_foundation}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -390,6 +415,12 @@ export default function CampaignDetail() {
                         </div>
                       </div>
                     )}
+
+                    {/* Data Foundation Callout */}
+                    <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-[11px] text-neutral-300 flex items-start gap-2">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                      <span><strong>Dasar Psikologi Naskah:</strong> {agent3.data_foundation}</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -436,6 +467,12 @@ export default function CampaignDetail() {
                     <div className="p-3 bg-neutral-900/60 rounded-xl border border-neutral-800 text-[11px] text-neutral-400">
                       💡 <strong>Rekomendasi Komposisi:</strong> {agent4.recommended_composition}
                     </div>
+
+                    {/* Data Foundation Callout */}
+                    <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 text-[11px] text-neutral-300 flex items-start gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                      <span><strong>Dasar Teori Visual:</strong> {agent4.data_foundation}</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -463,10 +500,23 @@ export default function CampaignDetail() {
               </CardHeader>
 
               <CardContent className="p-0 flex flex-col gap-6">
-                {/* QC Notes */}
-                <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>{agent5.qc_notes}</span>
+                {/* QC Notes & Data Foundation */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-bold mb-0.5">Audit Kualitas (Quality Control):</strong>
+                      <span>{agent5.qc_notes}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 text-xs text-neutral-300 flex items-start gap-2">
+                    <Database className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-bold text-rose-400 mb-0.5">Dasar Benchmark Funnel:</strong>
+                      <span>{agent5.data_foundation}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Big ROAS Display */}
@@ -542,6 +592,19 @@ export default function CampaignDetail() {
                     </TableRow>
                   </TableBody>
                 </Table>
+
+                {/* Mathematical Formula Breakdown Box */}
+                {agent5.roas_report.formula_breakdown && (
+                  <div className="p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-xs text-neutral-300">
+                    <span className="font-bold text-white flex items-center gap-1.5 uppercase tracking-wider text-[11px] mb-2">
+                      <Calculator className="w-4 h-4 text-rose-500" />
+                      Penjabaran Formula Matematis ROAS:
+                    </span>
+                    <pre className="font-mono text-[11px] text-neutral-400 whitespace-pre-wrap leading-relaxed">
+                      {agent5.roas_report.formula_breakdown}
+                    </pre>
+                  </div>
+                )}
 
                 {/* Ads Manager JSON Payload */}
                 <div className="pt-4 border-t border-neutral-800">

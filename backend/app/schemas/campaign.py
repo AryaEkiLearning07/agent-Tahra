@@ -17,7 +17,7 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- 5 SUB-AGENT SCHEMAS (TAHRA AI BLUEPRINT) ---
+# --- 5 SUB-AGENT SCHEMAS WITH EXPLICIT DATA FOUNDATION ---
 
 # SUB-AGENT 1: Market & Product Researcher (The Explorer)
 class Agent1MarketResearchOutput(BaseModel):
@@ -28,6 +28,7 @@ class Agent1MarketResearchOutput(BaseModel):
     usp: str
     pain_points: List[str]
     competitor_proxy: str
+    data_foundation: str  # Dasar data & riset pasar kompetitor
 
 # SUB-AGENT 2: Strategy Architect (The Planner)
 class Agent2StrategyOutput(BaseModel):
@@ -40,6 +41,7 @@ class Agent2StrategyOutput(BaseModel):
     bidding_model: Literal["CPM", "CPC", "CPA"]
     max_cpa_limit: int
     strategic_rationale: str
+    data_foundation: str  # Dasar perhitungan batas toleransi CPA & kesesuaian platform
 
 # SUB-AGENT 3: Creative Director & Copywriter (The Wordsmith)
 class VideoScriptSchema(BaseModel):
@@ -52,6 +54,7 @@ class Agent3CopywriterOutput(BaseModel):
     primary_text: str  # Framework PAS (Problem - Agitate - Solution)
     cta: str
     video_script: Optional[VideoScriptSchema] = None
+    data_foundation: str  # Dasar psikologi copywriting & alasan pemilihan hook
 
 # SUB-AGENT 4: Art Director & Visual Designer (The Creator)
 class Agent4VisualOutput(BaseModel):
@@ -59,6 +62,7 @@ class Agent4VisualOutput(BaseModel):
     visual_mood: str
     aspect_ratio: str
     recommended_composition: str
+    data_foundation: str  # Dasar teori warna, pencahayaan & algoritma CTR visual
 
 # SUB-AGENT 5: Adversarial Evaluator & Executor (The QA & Deployer)
 class FinancialMetrics(BaseModel):
@@ -71,6 +75,7 @@ class FinancialMetrics(BaseModel):
     roas_percentage: float
     roas_status: Literal["PROFIT", "BONCOS"]
     summary: str
+    formula_breakdown: str  # Penjelasan matematis CPM -> CTR -> CVR -> Laba
 
 class Agent5QAAndDeployOutput(BaseModel):
     qc_status: Literal["APPROVED", "REVISED", "VETO"]
@@ -79,6 +84,7 @@ class Agent5QAAndDeployOutput(BaseModel):
     roas_report: FinancialMetrics
     tracking_link: str
     deployment_status: str
+    data_foundation: str  # Dasar audit kualitas dan validasi deployment
 
 # COMPREHENSIVE PIPELINE RESULT
 class MultiAgentPipelineResult(BaseModel):
@@ -90,7 +96,7 @@ class MultiAgentPipelineResult(BaseModel):
     agent5_deploy: Optional[Agent5QAAndDeployOutput] = None
     message: Optional[str] = None
 
-    # Backward compatibility helpers for frontend
+    # Backward compatibility helpers
     @property
     def product(self):
         return self.agent1_research

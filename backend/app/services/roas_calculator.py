@@ -62,6 +62,16 @@ class ROASCalculator:
             f"({roas_status}) dengan estimasi laba bersih Rp {laba_bersih:,}/hari."
         ).replace(",", ".")
 
+        formula_breakdown = (
+            f"1. Tayangan: (Rp {budget_harian:,} / CPM Rp {cpm_benchmark:,}) × 1.000 = {tayangan:,} impresi\n"
+            f"2. Klik: {tayangan:,} × CTR 2% = {klik:,} pengunjung\n"
+            f"3. Pembeli: {klik:,} × CVR 3% = {pembeli:,} transaksi checkout\n"
+            f"4. Omzet Kotor: {pembeli:,} × Rp {harga_jual:,} = Rp {omzet:,}\n"
+            f"5. Modal Pokok (HPP): {pembeli:,} × Rp {hpp:,} = Rp {total_hpp_cost:,}\n"
+            f"6. Laba Bersih: Rp {omzet:,} - Rp {total_hpp_cost:,} - Rp {budget_harian:,} = Rp {laba_bersih:,}\n"
+            f"7. ROAS: (Rp {omzet:,} / Rp {budget_harian:,}) × 100% = {roas_percentage}%"
+        ).replace(",", ".")
+
         return {
             "budget_harian": budget_harian,
             "estimasi_tayangan": tayangan,
@@ -72,6 +82,7 @@ class ROASCalculator:
             "roas_percentage": roas_percentage,
             "roas_status": roas_status,
             "summary": summary,
+            "formula_breakdown": formula_breakdown,
         }
 
 roas_calculator = ROASCalculator()

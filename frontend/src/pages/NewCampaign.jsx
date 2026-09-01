@@ -9,6 +9,11 @@ import {
   HelpCircle,
   ArrowRight,
   Layers,
+  Search,
+  Target,
+  FileText,
+  Image as ImageIcon,
+  Cpu,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -38,43 +43,10 @@ export default function NewCampaign() {
 
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStage, setCurrentStage] = useState('');
+  const [currentStageIndex, setCurrentStageIndex] = useState(0);
+  const [thoughtLogs, setThoughtLogs] = useState([]);
   const [isVetoed, setIsVetoed] = useState(false);
   const [vetoAdvice, setVetoAdvice] = useState('');
-
-  // Agent Steps Tracker for the Live Visualizer
-  const [agentSteps, setAgentSteps] = useState([
-    {
-      code: '1A',
-      title: 'Product Decoder',
-      subtitle: 'Ekstraksi fitur, benefit & kelas produk',
-      status: 'pending',
-    },
-    {
-      code: '2',
-      title: 'Business Consultant',
-      subtitle: 'Validasi margin profit & proteksi anti-boncos',
-      status: 'pending',
-    },
-    {
-      code: '3',
-      title: 'Media Planner',
-      subtitle: 'Channel fit, bidding model & batas CPA',
-      status: 'pending',
-    },
-    {
-      code: '4A',
-      title: 'Creative Copywriter',
-      subtitle: 'Penyusunan naskah PAS & image prompt AI',
-      status: 'pending',
-    },
-    {
-      code: '5B',
-      title: 'Financial Controller',
-      subtitle: 'Simulasi CPM, CTR, CVR & ROAS Matrix',
-      status: 'pending',
-    },
-  ]);
 
   // Live Unit Economics Calculation
   const marginData = calculateMargin(form.harga_jual, form.hpp);
@@ -105,68 +77,71 @@ export default function NewCampaign() {
     setFormErrors({});
     setIsSubmitting(true);
     setIsVetoed(false);
+    setThoughtLogs([]);
+    setCurrentStageIndex(0);
 
-    // Progressive step simulation updates
-    const updateStep = (index, status) => {
-      setAgentSteps((prev) =>
-        prev.map((s, i) => (i === index ? { ...s, status } : s))
-      );
+    const addLog = (log) => {
+      setThoughtLogs((prev) => [...prev, log]);
     };
 
     try {
-      // Step 1: Agent 1A
-      updateStep(0, 'active');
-      setCurrentStage('Sub-Agent 1A: Menganalisis fitur produk & psikografi konsumen...');
-      await new Promise((r) => setTimeout(r, 700));
-      updateStep(0, 'done');
+      // Stage 1: Sub-Agent 1 (The Explorer)
+      setCurrentStageIndex(0);
+      addLog(`[Sub-Agent 1: The Explorer] Menganalisis Competitor Proxy untuk '${form.product_name}' di kategori ${form.kategori}...`);
+      await new Promise((r) => setTimeout(r, 650));
+      addLog(`[Sub-Agent 1: The Explorer] Mengidentifikasi 3 pain points audiens & merumuskan Unique Selling Proposition (USP)...`);
+      await new Promise((r) => setTimeout(r, 600));
 
-      // Step 2: Agent 2
-      updateStep(1, 'active');
-      setCurrentStage('Sub-Agent 2: Mengkalkulasi Unit Economics & ambang batas margin...');
-      await new Promise((r) => setTimeout(r, 700));
+      // Stage 2: Sub-Agent 2 (The Planner)
+      setCurrentStageIndex(1);
+      addLog(`[Sub-Agent 2: The Planner] Menguji Unit Economics: Margin Kotor ${(marginData.marginPercent).toFixed(1)}% vs Threshold 20%...`);
+      await new Promise((r) => setTimeout(r, 600));
 
-      // Check if immediate local VETO is triggered
+      // Immediate local VETO check
       if (marginData.marginPercent < 20) {
-        updateStep(1, 'error');
         setIsVetoed(true);
         setVetoAdvice(
-          `Margin kotor produk hanya ${marginData.marginPercent.toFixed(1)}% (di bawah batas minimum 20%). TAHRA AI memveto kampanye untuk mencegah kerugian operasional.`
+          `Margin kotor produk hanya ${marginData.marginPercent.toFixed(1)}% (di bawah batas minimum 20%). TAHRA AI memveto kampanye untuk mencegah kerugian modal periklanan.`
         );
+        addLog(`[Sub-Agent 2: The Planner] 🚫 VETO TRIGGERED: Margin terlalu tipis untuk menyerap biaya CPA iklan.`);
         return;
       }
-      updateStep(1, 'done');
 
-      // Step 3: Agent 3
-      updateStep(2, 'active');
-      setCurrentStage('Sub-Agent 3: Menentukan platform targeting & batas maksimal CPA...');
-      await new Promise((r) => setTimeout(r, 800));
-      updateStep(2, 'done');
+      addLog(`[Sub-Agent 2: The Planner] Memilih platform '${form.platform}' dengan format Video 9:16 & plafon CPA max Rp ${(marginData.marginValue * 0.4).toLocaleString('id-ID')}...`);
+      await new Promise((r) => setTimeout(r, 600));
 
-      // Step 4: Agent 4A
-      updateStep(3, 'active');
-      setCurrentStage('Sub-Agent 4A: Menulis copy iklan PAS framework & merancang prompt visual...');
-      await new Promise((r) => setTimeout(r, 900));
-      updateStep(3, 'done');
+      // Stage 3: Sub-Agent 3 (The Wordsmith)
+      setCurrentStageIndex(2);
+      addLog(`[Sub-Agent 3: The Wordsmith] Menyusun naskah video 15 detik (Hook 0-3s, Body 3-10s, CTA 10-15s)...`);
+      await new Promise((r) => setTimeout(r, 650));
+      addLog(`[Sub-Agent 3: The Wordsmith] Menulis caption persuasif menggunakan psikologi PAS Framework (Problem-Agitate-Solution)...`);
+      await new Promise((r) => setTimeout(r, 600));
 
-      // Step 5: Agent 5B
-      updateStep(4, 'active');
-      setCurrentStage('Sub-Agent 5B: Mengompilasi laporan matematis ROAS & matriks finansial...');
+      // Stage 4: Sub-Agent 4 (The Creator)
+      setCurrentStageIndex(3);
+      addLog(`[Sub-Agent 4: The Creator] Merangkai prompt visual studio 8K dengan pencahayaan dramatis rasio ${form.platform === 'TikTok' ? '9:16' : '1:1'}...`);
+      await new Promise((r) => setTimeout(r, 700));
 
-      // Call API
+      // Stage 5: Sub-Agent 5 (The QA & Deployer)
+      setCurrentStageIndex(4);
+      addLog(`[Sub-Agent 5: The QA & Deployer] Melakukan Quality Control silang antara USP, rasio visual, dan platform...`);
+      addLog(`[Sub-Agent 5: The QA & Deployer] Meracik Campaign Blueprint Payload & simulasi matematis ROAS (CPM/CTR/CVR)...`);
+
+      // Invoke API
       const pipelineRes = await runAgentPipeline(form);
       const resultData = pipelineRes.data;
 
-      updateStep(4, 'done');
+      addLog(`[Sub-Agent 5: The QA & Deployer] ✅ QA APPROVED: Blueprint kampanye siap dieksekusi.`);
       await new Promise((r) => setTimeout(r, 500));
 
-      // Construct and save record
+      // Save Record
       const campaignRecord = {
         id: Date.now(),
         product_name: form.product_name,
         platform: form.platform,
         target_audience:
+          resultData?.agent1_research?.target_demography ||
           resultData?.strategy?.target_demography ||
-          resultData?.product?.audience_psychography ||
           'Target audiens teroptimasi AI',
         budget: Number(form.budget_harian),
         status: resultData?.status === 'VETO' ? 'Veto' : 'Completed',
@@ -180,12 +155,11 @@ export default function NewCampaign() {
       await saveCampaign(campaignRecord);
       setIsSubmitting(false);
 
-      // Navigate to detail page
       navigate(`/campaign/${campaignRecord.id}`, {
         state: { campaign: campaignRecord },
       });
     } catch (err) {
-      console.error('Pipeline error:', err);
+      console.error('Pipeline execution error:', err);
       setIsSubmitting(false);
     }
   };
@@ -197,7 +171,7 @@ export default function NewCampaign() {
       <PageContainer
         badge="Form Parameter Ketat"
         title="Buat Strategi Kampanye Baru"
-        description="Lengkapi parameter produk. 5 Sub-Agent AI akan menganalisis kelayakan ekonomi dan merancang blueprint periklanan siap pakai."
+        description="Lengkapi data produk. 5 Sub-Agent AI akan menganalisis kelayakan pasar, merancang strategi periklanan, dan memvalidasi ROAS secara matematis."
         backUrl="/dashboard"
         backLabel="Kembali ke Dashboard"
         maxWidth="max-w-5xl"
@@ -298,7 +272,7 @@ export default function NewCampaign() {
                     { value: 'Instagram', label: '📸 Instagram Ads (Format 1:1 Feed & Reels)' },
                     { value: 'Facebook', label: '📢 Facebook Ads (Traffic & Conversion)' },
                   ]}
-                  helperText="Sub-Agent 3 akan mengevaluasi apakah channel ini sesuai dengan psikografi audiens produk Anda."
+                  helperText="Sub-Agent 2 akan mengevaluasi apakah channel ini sesuai dengan psikografi audiens produk Anda."
                 />
 
                 <Button
@@ -309,7 +283,7 @@ export default function NewCampaign() {
                   rightIcon={<ArrowRight className="w-5 h-5" />}
                   className="mt-4"
                 >
-                  Jalankan 5 Sub-Agent AI →
+                  Mulai Orkestrasi 5 Sub-Agent AI →
                 </Button>
               </form>
             </Card>
@@ -371,7 +345,7 @@ export default function NewCampaign() {
                       </strong>
                       <span>
                         {marginData.status === 'VETO'
-                          ? 'Perhatian: Margin di bawah 20% sangat rentan membuat iklan boncos. Agent Advisor akan memblokir eksekusi iklan otomatis.'
+                          ? 'Perhatian: Margin di bawah 20% sangat rentan membuat iklan boncos. Sub-Agent 2 akan memblokir eksekusi iklan otomatis.'
                           : marginData.status === 'WARNING'
                           ? 'Margin mencukupi namun memiliki ruang kecil untuk biaya CPA iklan.'
                           : 'Margin sangat sehat! Ideal untuk diiklankan secara agresif di platform digital.'}
@@ -390,29 +364,29 @@ export default function NewCampaign() {
             <Card className="p-6 bg-neutral-950/60 border-neutral-900">
               <h4 className="text-xs font-black uppercase tracking-wider text-rose-500 mb-3 flex items-center gap-1.5">
                 <Bot className="w-4 h-4" />
-                Pipeline Multi-Agent TAHRA
+                Alur 5 Sub-Agent TAHRA AI
               </h4>
 
               <ul className="flex flex-col gap-2.5 text-xs text-neutral-400 font-medium">
                 <li className="flex items-start gap-2">
                   <span className="text-rose-500 font-black">1.</span>
-                  <span>Agent 1A mengekstrak keunggulan & psikografi produk.</span>
+                  <span><strong>The Explorer:</strong> Riset Competitor Proxy & Pain Points.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-rose-500 font-black">2.</span>
-                  <span>Agent 2 memvalidasi Unit Economics (Anti-Boncos).</span>
+                  <span><strong>The Planner:</strong> Audit Anti-Boncos & Format Medan Iklan.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-rose-500 font-black">3.</span>
-                  <span>Agent 3 menentukan platform & batas maksimal CPA.</span>
+                  <span><strong>The Wordsmith:</strong> Naskah Video 15s & Copywriting PAS.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-rose-500 font-black">4.</span>
-                  <span>Agent 4A menulis copy PAS & prompt visual HD.</span>
+                  <span><strong>The Creator:</strong> Prompt Visual 8K & Staging Studio.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-rose-500 font-black">5.</span>
-                  <span>Agent 5B memproyeksikan laba & ROAS harian.</span>
+                  <span><strong>The QA & Deployer:</strong> Validasi Konsistensi & Kalkulasi ROAS.</span>
                 </li>
               </ul>
             </Card>
@@ -420,12 +394,12 @@ export default function NewCampaign() {
         </div>
       </PageContainer>
 
-      {/* Live Agent Thinking Modal */}
+      {/* Live Ultra-Premium Multi-Agent Thinking Modal */}
       <AgentThinkingModal
         isOpen={isSubmitting}
-        currentStage={currentStage}
-        steps={agentSteps}
+        currentStageIndex={currentStageIndex}
         productName={form.product_name}
+        logs={thoughtLogs}
         isVeto={isVetoed}
         vetoReason={vetoAdvice}
         onClose={() => {

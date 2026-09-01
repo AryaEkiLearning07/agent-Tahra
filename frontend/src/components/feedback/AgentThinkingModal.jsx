@@ -1,97 +1,245 @@
-import React from 'react';
-import { Bot, Sparkles, Loader2, ShieldCheck, XCircle } from 'lucide-react';
-import { Stepper } from '../ui/Stepper';
+import React, { useEffect, useState } from 'react';
+import {
+  Bot,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+  Search,
+  Target,
+  FileText,
+  Image as ImageIcon,
+  TrendingUp,
+  Cpu,
+  Terminal,
+} from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Badge } from '../ui/Badge';
+import { cn } from '../../utils/cn';
 
 /**
- * High-Impact Modal for Multi-Agent Execution Visualization
+ * Ultra-Premium, Highly Informative Multi-Agent Thinking Visualizer
  */
 export function AgentThinkingModal({
   isOpen,
-  currentStage,
-  steps,
+  currentStageIndex = 0,
   productName,
+  logs = [],
+  interimData = {},
   isVeto = false,
   vetoReason = '',
   onClose,
 }) {
   if (!isOpen) return null;
 
+  const agentDefinitions = [
+    {
+      code: '1',
+      name: 'Sub-Agent 1: The Explorer',
+      role: 'Market & Product Researcher',
+      icon: <Search className="w-4 h-4" />,
+      liveAction: 'Menganalisis Competitor Proxy & memetakan 3 Pain Points konsumen...',
+      focus: 'Proxy Pesaing & USP',
+    },
+    {
+      code: '2',
+      name: 'Sub-Agent 2: The Planner',
+      role: 'Strategy & Anti-Boncos Architect',
+      icon: <Target className="w-4 h-4" />,
+      liveAction: 'Mengkalkulasi Unit Economics, memilih format (9:16) & batas plafon CPA...',
+      focus: 'Margin Check & Medan Iklan',
+    },
+    {
+      code: '3',
+      name: 'Sub-Agent 3: The Wordsmith',
+      role: 'Creative Director & Copywriter',
+      icon: <FileText className="w-4 h-4" />,
+      liveAction: 'Merangkai Naskah Video 15s (Hook-Body-CTA) & caption psikologi PAS...',
+      focus: 'Naskah PAS & Video 15s',
+    },
+    {
+      code: '4',
+      name: 'Sub-Agent 4: The Creator',
+      role: 'Art Director & Visual Designer',
+      icon: <ImageIcon className="w-4 h-4" />,
+      liveAction: 'Merancang prompt Text-to-Image 8K & menyelaraskan komposisi pencahayaan...',
+      focus: 'Prompt Studio & Lighting',
+    },
+    {
+      code: '5',
+      name: 'Sub-Agent 5: The QA & Deployer',
+      role: 'Adversarial QA & ROAS Controller',
+      icon: <TrendingUp className="w-4 h-4" />,
+      liveAction: 'Validasi silang konsistensi data, meracik Payload Ads Manager & simulasi ROAS...',
+      focus: 'QC & Formula ROAS',
+    },
+  ];
+
+  const activeAgent = agentDefinitions[currentStageIndex] || agentDefinitions[0];
+  const progressPercent = Math.min(100, Math.round(((currentStageIndex + 1) / 5) * 100));
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="agent-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-300"
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-neutral-950 border border-rose-500/30 p-6 sm:p-8 shadow-[0_0_80px_rgba(244,63,94,0.25)] overflow-hidden">
-        {/* Glow orb */}
-        <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-rose-600/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-red-600/20 blur-3xl pointer-events-none" />
+      <div className="relative w-full max-w-2xl rounded-3xl bg-neutral-950 border border-rose-500/40 p-6 sm:p-8 shadow-[0_0_100px_rgba(244,63,94,0.3)] overflow-hidden flex flex-col gap-6">
+        {/* Ambient Neural Glows */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 rounded-full bg-rose-600/20 blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 rounded-full bg-red-600/20 blur-[100px] pointer-events-none" />
 
-        {/* Header with animated icon */}
-        <div className="text-center mb-6">
-          <div className="relative inline-block mb-3">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-600 via-red-600 to-rose-500 flex items-center justify-center text-white shadow-[0_0_30px_rgba(244,63,94,0.6)]">
-              {isVeto ? (
-                <XCircle className="w-8 h-8 text-white" />
-              ) : (
-                <Bot className="w-8 h-8 text-white animate-pulse" />
+        {/* Modal Header */}
+        <div className="flex items-start justify-between border-b border-neutral-900 pb-5">
+          <div className="flex items-center gap-3.5">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 via-red-600 to-rose-500 flex items-center justify-center text-white shadow-[0_0_25px_rgba(244,63,94,0.5)]">
+                {isVeto ? <XCircle className="w-6 h-6" /> : <Cpu className="w-6 h-6 animate-pulse" />}
+              </div>
+              {!isVeto && (
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500" />
+                </span>
               )}
             </div>
-            {!isVeto && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500" />
-              </span>
-            )}
+
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-widest text-rose-500 font-mono">
+                  TAHRA AI MULTI-AGENT ENGINE
+                </span>
+                <span className="text-neutral-600 text-xs">•</span>
+                <span className="text-xs font-bold text-neutral-400 font-mono">
+                  {progressPercent}% Complete
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight">
+                {isVeto ? 'Kampanye Diveto oleh AI Advisor' : 'Orkestrasi 5 Sub-Agent Sedang Bekerja'}
+              </h2>
+            </div>
           </div>
 
-          <h3 id="agent-modal-title" className="text-xl font-black tracking-tight text-white uppercase">
-            {isVeto ? 'Kampanye Diveto oleh AI Advisor' : 'Orkestrasi Multi-Agent Berjalan'}
-          </h3>
-
-          <p className="text-xs text-neutral-400 mt-1 font-medium">
-            Produk: <span className="text-white font-bold">{productName}</span>
-          </p>
+          <Badge variant={isVeto ? 'danger' : 'brand'} size="sm" hasDot isPulse={!isVeto}>
+            {isVeto ? 'VETO TRIGGERED' : 'LIVE INFERENCE'}
+          </Badge>
         </div>
 
         {isVeto ? (
-          <div className="bg-red-950/40 border border-red-500/40 rounded-2xl p-5 mb-6 text-center">
-            <h4 className="text-sm font-bold text-red-400 mb-2 uppercase tracking-wide">
-              🚫 Perlindungan Modal UMKM
-            </h4>
-            <p className="text-xs text-red-200 leading-relaxed">
+          /* VETO BANNER */
+          <div className="p-6 rounded-2xl bg-red-950/40 border border-red-500/40 text-center flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center">
+              <XCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-red-300 uppercase tracking-wide">
+              Perlindungan Modal Anti-Boncos
+            </h3>
+            <p className="text-xs text-red-200/90 leading-relaxed max-w-md">
               {vetoReason ||
-                'Margin produk di bawah batas aman 20%. Menjalankan iklan berisiko membakar modal usaha Anda tanpa hasil yang menguntungkan.'}
+                'Margin profit produk di bawah 20%. Sub-Agent 2 memblokir eksekusi iklan untuk menyelamatkan anggaran operasional UMKM Anda.'}
             </p>
-            <Button
-              variant="danger"
-              isFullWidth
-              className="mt-4"
-              onClick={onClose}
-            >
-              Ubah Parameter Harga / HPP
+            <Button variant="danger" size="md" onClick={onClose} className="mt-2">
+              Sesuaikan Harga Jual / HPP
             </Button>
           </div>
         ) : (
           <>
-            {/* Live Step Tracker */}
-            <div className="bg-neutral-900/60 rounded-2xl border border-neutral-800/80 p-4 mb-6">
-              <Stepper steps={steps} layout="vertical" />
+            {/* Progress Bar */}
+            <div className="w-full bg-neutral-900 rounded-full h-2 overflow-hidden p-0.5 border border-neutral-800">
+              <div
+                className="bg-gradient-to-r from-rose-600 via-red-500 to-rose-400 h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(244,63,94,0.8)]"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
 
-            {/* Live Agent Terminal Log */}
-            <div className="bg-black/90 rounded-xl border border-neutral-800 p-3 font-mono text-[11px] text-neutral-400 flex items-center justify-between">
-              <div className="flex items-center gap-2 truncate">
-                <Loader2 className="w-3.5 h-3.5 text-rose-500 animate-spin shrink-0" />
-                <span className="truncate text-neutral-300 font-medium">
-                  {currentStage || 'Menginisialisasi pipeline...'}
+            {/* 5-Agent Stage Cards */}
+            <div className="grid grid-cols-1 gap-2.5">
+              {agentDefinitions.map((agent, idx) => {
+                const isDone = idx < currentStageIndex;
+                const isActive = idx === currentStageIndex;
+                const isPending = idx > currentStageIndex;
+
+                return (
+                  <div
+                    key={agent.code}
+                    className={cn(
+                      'p-3 rounded-2xl border transition-all duration-300 flex items-center justify-between gap-3',
+                      isActive
+                        ? 'bg-rose-950/30 border-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.15)] ring-1 ring-rose-500/30'
+                        : isDone
+                        ? 'bg-neutral-950/60 border-neutral-800/80 opacity-90'
+                        : 'bg-neutral-950/20 border-neutral-900/50 opacity-40'
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors',
+                          isDone
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                            : isActive
+                            ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50 animate-pulse'
+                            : 'bg-neutral-900 text-neutral-600 border border-neutral-800'
+                        )}
+                      >
+                        {isDone ? <CheckCircle2 className="w-4 h-4" /> : agent.icon}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-white truncate">
+                            {agent.name}
+                          </span>
+                          <span className="text-[10px] text-neutral-500 font-bold px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-800 shrink-0">
+                            {agent.focus}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-400 truncate mt-0.5 font-medium">
+                          {isActive ? agent.liveAction : agent.role}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 font-mono text-[10px] font-black uppercase">
+                      {isDone && <span className="text-emerald-400">SELESAI ✓</span>}
+                      {isActive && (
+                        <span className="text-rose-400 flex items-center gap-1 animate-pulse">
+                          <Loader2 className="w-3 h-3 animate-spin" /> PROSES...
+                        </span>
+                      )}
+                      {isPending && <span className="text-neutral-600">MENUNGGU</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Real-time Thought Stream Terminal */}
+            <div className="p-3.5 bg-black/90 rounded-2xl border border-neutral-800 flex flex-col gap-2 font-mono text-[11px]">
+              <div className="flex items-center justify-between text-neutral-500 text-[10px] font-bold uppercase tracking-wider border-b border-neutral-900 pb-1.5">
+                <span className="flex items-center gap-1.5 text-neutral-400">
+                  <Terminal className="w-3.5 h-3.5 text-rose-500" />
+                  Live AI Rationale & Telemetry
                 </span>
+                <span className="text-rose-400">GROQ LPU / HERMES-3</span>
               </div>
-              <span className="text-[10px] text-rose-500/80 font-bold shrink-0 ml-2">
-                FASTAPI
-              </span>
+
+              <div className="flex flex-col gap-1 max-h-24 overflow-y-auto pr-1 text-neutral-300 leading-relaxed">
+                {logs.length > 0 ? (
+                  logs.map((log, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="text-rose-500 font-bold shrink-0">›</span>
+                      <span className="text-neutral-300">{log}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center gap-2 text-neutral-500 italic">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Menghubungkan ke cluster LLM dan menginisialisasi parameter pasar...</span>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
