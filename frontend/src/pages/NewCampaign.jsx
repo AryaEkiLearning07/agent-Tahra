@@ -1,164 +1,270 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-
-const BACKEND_URL = 'http://127.0.0.1:8000'
-
-const Field = ({ label, children, hint }) => (
-  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-    <label style={{ fontSize:11, fontWeight:800, color:'var(--red-bright)', textTransform:'uppercase', letterSpacing:'0.1em' }}>{label}</label>
-    {children}
-    {hint && <p style={{ fontSize:11, color:'var(--muted)' }}>{hint}</p>}
-  </div>
-)
-
-const RpInput = ({ id, name, value, onChange, placeholder }) => (
-  <div style={{ position:'relative' }}>
-    <span style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', fontSize:12, color:'var(--muted)', fontWeight:700, pointerEvents:'none' }}>Rp</span>
-    <input id={id} name={name} type="number" min="0" required
-      value={value} onChange={onChange} placeholder={placeholder}
-      className="form-input form-input-rp" />
-  </div>
-)
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import axios from 'axios';
 
 export default function NewCampaign() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [form, setForm] = useState({ product_name:'', harga_jual:'', hpp:'', budget_harian:'', kategori:'Fisik' })
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState('');
+  const [form, setForm] = useState({
+    product_name: '',
+    target_audience: '',
+    budget: '',
+    platform: 'TikTok',
+  });
 
-  const onChange = e => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const margin = form.harga_jual && form.hpp
-    ? ((parseInt(form.harga_jual) - parseInt(form.hpp)) / parseInt(form.harga_jual)) * 100
-    : null
+    setStep('🔍 Menganalisis target audiens & tren pasar...');
 
-  const marginColor = margin === null ? null : margin >= 30 ? '#34d399' : margin >= 20 ? '#fbbf24' : 'var(--red-bright)'
-  const marginLabel = margin === null ? null : margin >= 30 ? '✅ MARGIN SEHAT' : margin >= 20 ? '⚡ PERLU PERHATIAN' : '🚫 BERISIKO VETO'
+    setTimeout(() => {
+      setStep('✍️ Menyusun copywriting & hook iklan otomatis...');
+    }, 1500);
 
-  const handleSubmit = async e => {
-    e.preventDefault(); setLoading(true); setError('')
-    try {
-      const payload = {
-        product_name: form.product_name,
-        harga_jual: parseInt(form.harga_jual),
-        hpp: parseInt(form.hpp),
-        budget_harian: parseInt(form.budget_harian),
-        kategori: form.kategori,
-      }
-      const res = await axios.post(`${BACKEND_URL}/api/start-agent`, payload)
-      const result = res.data
-      const saved = JSON.parse(localStorage.getItem('tahra_campaigns') || '[]')
-      const newC = {
-        id: Date.now(), product_name: form.product_name, status:'Completed',
-        platform: result.strategy?.platform || '-',
-        roas: result.roas_report?.roas_percentage ? `${parseFloat(result.roas_report.roas_percentage).toFixed(1)}%` : '-',
-        date: new Date().toISOString().split('T')[0], result,
-      }
-      localStorage.setItem('tahra_campaigns', JSON.stringify([newC, ...saved]))
-      navigate(`/campaign/${newC.id}`, { state:{ campaign: newC } })
-    } catch {
-      setError('Gagal koneksi ke backend. Pastikan server running di port 8000.')
-      setLoading(false)
-    }
-  }
+    setTimeout(() => {
+      setStep('📊 Memprediksi ROAS & menyimpan ke MySQL...');
+    }, 3000);
+
+    setTimeout(() => {
+      // Simpan data langsung ke database MySQL via API Express
+      axios
+        .post('http://localhost:5000/api/campaigns', form)
+        .then((res) => {
+          setLoading(false);
+          navigate('/dashboard');
+        })
+        .catch((err) => {
+          console.error('Gagal menyimpan ke MySQL:', err);
+          setLoading(false);
+        });
+    }, 4500);
+  };
 
   return (
-    <div className="bg-main">
-      <nav className="navbar">
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <button className="btn-ghost" onClick={() => navigate('/')}>← Kembali</button>
-          <span style={{ color:'var(--border)', fontSize:20 }}>|</span>
-          <span style={{ fontSize:14, fontWeight:700, color:'var(--muted2)' }}>KAMPANYE BARU</span>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'radial-gradient(circle at 50% -20%, rgba(196,30,58,0.15), transparent 70%), #0d0d0d',
+        color: '#f3f4f6',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      <nav
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '18px 40px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(12px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          background: 'rgba(13,13,13,0.75)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: 'linear-gradient(135deg, #e11d48, #9f1239)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: 20,
+              color: '#fff',
+              boxShadow: '0 0 16px rgba(225,29,72,0.4)',
+            }}
+          >
+            T
+          </div>
+          <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff' }}>
+            TAHRA <span style={{ color: '#f43f5e', fontWeight: 400 }}>AI</span>
+          </span>
         </div>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <div className="logo-mark">T</div>
-          <span className="logo-text">TAHRA <span>AI</span></span>
-        </div>
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            color: '#9ca3af',
+            border: '1px solid rgba(255,255,255,0.1)',
+            padding: '8px 16px',
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 13,
+            cursor: 'pointer',
+          }}
+        >
+          ← Kembali ke Dashboard
+        </button>
       </nav>
 
-      <main style={{ maxWidth:780, margin:'0 auto', padding:'52px 32px' }}>
-        <div className="fade-up" style={{ marginBottom:36 }}>
-          <p className="label">Langkah 1 dari 1</p>
-          <h1 style={{ fontSize:36, fontWeight:900, letterSpacing:'-0.04em', textTransform:'uppercase' }}>DETAIL PRODUK</h1>
-          <p style={{ color:'var(--muted2)', marginTop:10, fontSize:14 }}>
-            Isi info produkmu — 5 Agent AI akan menganalisis dan merancang strategi terbaik
-          </p>
+      <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px' }}>
+        <div style={{ marginBottom: 32, textAlign: 'center' }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: '#f43f5e',
+              background: 'rgba(244,63,94,0.1)',
+              padding: '4px 10px',
+              borderRadius: 6,
+            }}
+          >
+            Step 1 dari 2: Input Data
+          </span>
+          <h1 style={{ fontSize: 32, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 12, color: '#fff' }}>BUAT KAMPANYE BARU</h1>
+          <p style={{ color: '#9ca3af', marginTop: 6, fontSize: 14 }}>Isi info produk kamu dan biarkan Agen AI merancang strategi secara otomatis</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="card fade-up" style={{ padding:36 }}>
-            {/* Top red accent */}
-            <div className="red-bar" />
-
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:22 }}>
-              <div style={{ gridColumn:'1/-1' }}>
-                <Field label="Nama Produk">
-                  <input id="input-product-name" name="product_name" type="text" required
-                    placeholder="e.g. Sambal Kemasan TAHRA"
-                    value={form.product_name} onChange={onChange}
-                    className="form-input" />
-                </Field>
-              </div>
-              <Field label="Harga Jual" hint="Harga yang dibayar konsumen">
-                <RpInput id="input-harga" name="harga_jual" value={form.harga_jual} onChange={onChange} placeholder="25000" />
-              </Field>
-              <Field label="HPP / Modal" hint="Biaya produksi per unit">
-                <RpInput id="input-hpp" name="hpp" value={form.hpp} onChange={onChange} placeholder="10000" />
-              </Field>
-              <Field label="Budget Iklan Harian" hint="Budget yang dialokasikan per hari">
-                <RpInput id="input-budget" name="budget_harian" value={form.budget_harian} onChange={onChange} placeholder="100000" />
-              </Field>
-              <Field label="Kategori Produk">
-                <select id="input-kategori" name="kategori" value={form.kategori} onChange={onChange} className="form-input">
-                  <option value="Fisik">🧴 Produk Fisik</option>
-                  <option value="Jasa">🛠️ Jasa</option>
-                  <option value="Digital">💻 Digital</option>
-                </select>
-              </Field>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 20,
+            padding: 32,
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 10px' }}>
+              <div
+                style={{
+                  width: 50,
+                  height: 50,
+                  border: '4px solid rgba(244,63,94,0.2)',
+                  borderTop: '4px solid #f43f5e',
+                  borderRadius: '50%',
+                  margin: '0 auto 20px',
+                  animation: 'spin 1s linear infinite',
+                }}
+              />
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              <h3 style={{ fontSize: 18, color: '#fff', fontWeight: 700, marginBottom: 8 }}>Tahra AI Sedang Bekerja...</h3>
+              <p style={{ color: '#f43f5e', fontSize: 14, fontWeight: 600 }}>{step}</p>
             </div>
-
-            {/* Live Margin Preview */}
-            {margin !== null && (
-              <div className="fade-up" style={{
-                marginTop:22, padding:'16px 20px', borderRadius:10,
-                background:'rgba(196,30,58,0.07)', border:'1px solid rgba(196,30,58,0.2)',
-                display:'flex', alignItems:'center', justifyContent:'space-between'
-              }}>
-                <span style={{ fontSize:12, color:'var(--muted2)', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em' }}>PREVIEW MARGIN</span>
-                <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                  <span style={{ fontSize:26, fontWeight:900, color:marginColor, letterSpacing:'-0.03em' }}>{margin.toFixed(1)}%</span>
-                  <span style={{ fontSize:11, fontWeight:700, color:marginColor }}>{marginLabel}</span>
-                </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, letterSpacing: '0.05em' }}>NAMA PRODUK / UMKM</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Kopi Susu Aren TAHRA"
+                  value={form.product_name}
+                  onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    color: '#fff',
+                    fontSize: 14,
+                    outline: 'none',
+                  }}
+                />
               </div>
-            )}
 
-            {error && (
-              <div style={{
-                marginTop:18, padding:'14px 18px', borderRadius:10,
-                background:'rgba(196,30,58,0.1)', border:'1px solid rgba(196,30,58,0.3)',
-                color:'#f87171', fontSize:13
-              }}>⚠️ {error}</div>
-            )}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, letterSpacing: '0.05em' }}>PLATFORM IKLAN</label>
+                <select
+                  value={form.platform}
+                  onChange={(e) => setForm({ ...form, platform: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    color: '#fff',
+                    fontSize: 14,
+                    outline: 'none',
+                  }}
+                >
+                  <option value="TikTok" style={{ background: '#121212' }}>
+                    🎵 TikTok Ads
+                  </option>
+                  <option value="Instagram" style={{ background: '#121212' }}>
+                    📸 Instagram Ads
+                  </option>
+                  <option value="Facebook" style={{ background: '#121212' }}>
+                    📢 Facebook Ads
+                  </option>
+                </select>
+              </div>
 
-            <button id="btn-submit" type="submit" disabled={loading} className="btn-red"
-              style={{ width:'100%', marginTop:28, justifyContent:'center', padding:'14px', fontSize:14, borderRadius:12 }}>
-              {loading ? (
-                <>
-                  <span className="spin-anim" style={{ width:16, height:16, border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', borderRadius:'50%', display:'inline-block' }} />
-                  AGENT AI SEDANG BEKERJA...
-                </>
-              ) : '🔥 MULAI ANALISIS AI'}
-            </button>
-          </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, letterSpacing: '0.05em' }}>TARGET AUDIENS</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Anak muda umur 18-25 tahun, suka nongkrong"
+                  value={form.target_audience}
+                  onChange={(e) => setForm({ ...form, target_audience: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    color: '#fff',
+                    fontSize: 14,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: 28 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#9ca3af', marginBottom: 8, letterSpacing: '0.05em' }}>ESTIMASI BUDGET (RP)</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="Contoh: 500000"
+                  value={form.budget}
+                  onChange={(e) => setForm({ ...form, budget: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    color: '#fff',
+                    fontSize: 14,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #e11d48, #be123c)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '14px',
+                  borderRadius: 10,
+                  fontWeight: 800,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(225,29,72,0.3)',
+                }}
+              >
+                🚀 GENERATE STRATEGI KAMPANYE (AI AGENT)
+              </button>
+            </>
+          )}
         </form>
-
-        <div style={{ display:'flex', gap:10, marginTop:20, flexWrap:'wrap' }}>
-          {['5 Agent Spesialis','Analisis ROAS','Copy Iklan Otomatis','Anti-Boncos'].map(t => (
-            <span key={t} className="chip">{t}</span>
-          ))}
-        </div>
       </main>
     </div>
-  )
+  );
 }
