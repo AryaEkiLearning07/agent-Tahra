@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 
 class CampaignCreate(BaseModel):
@@ -7,7 +7,7 @@ class CampaignCreate(BaseModel):
     hpp: int = Field(..., gt=0, description="Harga Pokok Penjualan / Modal per unit")
     budget_harian: int = Field(..., ge=10000, description="Budget iklan harian dalam Rupiah")
     kategori: Literal["Fisik", "Jasa", "Digital"] = Field(default="Fisik", description="Kategori produk")
-    platform: Optional[Literal["TikTok", "Instagram", "Facebook", "Google"]] = Field(default="TikTok")
+    platform: Optional[str] = Field(default="TikTok", description="Preferensi platform awal")
 
     @field_validator("hpp")
     @classmethod
@@ -17,34 +17,51 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- Sub-Agent Schemas ---
+# --- 5 SUB-AGENT SCHEMAS (TAHRA AI BLUEPRINT) ---
 
-class ProductDecoderOutput(BaseModel):
+# SUB-AGENT 1: Market & Product Researcher (The Explorer)
+class Agent1MarketResearchOutput(BaseModel):
     product_name: str
-    key_features: List[str]
     product_class: Literal["Murah", "Menengah", "Premium"]
+    target_demography: str
     audience_psychography: str
+    usp: str
+    pain_points: List[str]
+    competitor_proxy: str
 
-class BusinessConsultantOutput(BaseModel):
+# SUB-AGENT 2: Strategy Architect (The Planner)
+class Agent2StrategyOutput(BaseModel):
     margin_value: int
     margin_percentage: float
     financial_status: Literal["HEALTHY", "WARNING", "VETO"]
-    consultation_advice: str
-
-class MediaPlannerOutput(BaseModel):
-    target_demography: str
     platform: str
+    format_iklan: str
     aspect_ratio: Literal["9:16", "1:1", "16:9"]
     bidding_model: Literal["CPM", "CPC", "CPA"]
     max_cpa_limit: int
+    strategic_rationale: str
 
-class CopywriterOutput(BaseModel):
+# SUB-AGENT 3: Creative Director & Copywriter (The Wordsmith)
+class VideoScriptSchema(BaseModel):
+    hook_0_3s: str
+    body_3_10s: str
+    cta_10_15s: str
+
+class Agent3CopywriterOutput(BaseModel):
     headline: str
-    primary_text: str
+    primary_text: str  # Framework PAS (Problem - Agitate - Solution)
     cta: str
-    image_prompt: str
+    video_script: Optional[VideoScriptSchema] = None
 
-class FinancialReporterOutput(BaseModel):
+# SUB-AGENT 4: Art Director & Visual Designer (The Creator)
+class Agent4VisualOutput(BaseModel):
+    image_prompt: str
+    visual_mood: str
+    aspect_ratio: str
+    recommended_composition: str
+
+# SUB-AGENT 5: Adversarial Evaluator & Executor (The QA & Deployer)
+class FinancialMetrics(BaseModel):
     budget_harian: int
     estimasi_tayangan: int
     estimasi_klik: int
@@ -55,11 +72,41 @@ class FinancialReporterOutput(BaseModel):
     roas_status: Literal["PROFIT", "BONCOS"]
     summary: str
 
+class Agent5QAAndDeployOutput(BaseModel):
+    qc_status: Literal["APPROVED", "REVISED", "VETO"]
+    qc_notes: str
+    campaign_blueprint_payload: Dict[str, Any]
+    roas_report: FinancialMetrics
+    tracking_link: str
+    deployment_status: str
+
+# COMPREHENSIVE PIPELINE RESULT
 class MultiAgentPipelineResult(BaseModel):
     status: Literal["COMPLETED", "VETO"]
-    product: ProductDecoderOutput
-    financial_report: BusinessConsultantOutput
-    strategy: Optional[MediaPlannerOutput] = None
-    creative: Optional[CopywriterOutput] = None
-    roas_report: Optional[FinancialReporterOutput] = None
+    agent1_research: Agent1MarketResearchOutput
+    agent2_strategy: Agent2StrategyOutput
+    agent3_creative: Optional[Agent3CopywriterOutput] = None
+    agent4_visual: Optional[Agent4VisualOutput] = None
+    agent5_deploy: Optional[Agent5QAAndDeployOutput] = None
     message: Optional[str] = None
+
+    # Backward compatibility helpers for frontend
+    @property
+    def product(self):
+        return self.agent1_research
+
+    @property
+    def financial_report(self):
+        return self.agent2_strategy
+
+    @property
+    def strategy(self):
+        return self.agent2_strategy
+
+    @property
+    def creative(self):
+        return self.agent3_creative
+
+    @property
+    def roas_report(self):
+        return self.agent5_deploy.roas_report if self.agent5_deploy else None
