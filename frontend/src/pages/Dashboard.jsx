@@ -13,6 +13,9 @@ import {
   Bot,
   Zap,
   HelpCircle,
+  PlayCircle,
+  CheckCircle2,
+  ShieldAlert,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -34,6 +37,7 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
 
   useEffect(() => {
     async function loadData() {
@@ -51,19 +55,41 @@ export default function Dashboard() {
   }, []);
 
   const platforms = ['All', 'TikTok', 'Instagram', 'Facebook'];
+  const statusTabs = [
+    { key: 'All', label: 'Semua Status' },
+    { key: 'Running', label: '🟢 Iklan Aktif' },
+    { key: 'Ready', label: '📋 Blueprint Siap' },
+    { key: 'Veto', label: '🛡️ Terproteksi' },
+  ];
 
   const filteredCampaigns = campaigns.filter((c) => {
     const matchesSearch = c.product_name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
+
     const matchesPlatform =
       selectedPlatform === 'All' ||
       c.platform?.toLowerCase() === selectedPlatform.toLowerCase();
-    return matchesSearch && matchesPlatform;
+
+    const matchesStatus =
+      selectedStatus === 'All' ||
+      (selectedStatus === 'Running' && (c.status?.toLowerCase() === 'running' || c.status?.toLowerCase() === 'aktif')) ||
+      (selectedStatus === 'Ready' && (c.status?.toLowerCase() === 'ready' || c.status?.toLowerCase() === 'completed' || c.status?.toLowerCase() === 'sukses')) ||
+      (selectedStatus === 'Veto' && (c.status?.toLowerCase() === 'veto' || c.status?.toLowerCase() === 'rejected'));
+
+    return matchesSearch && matchesPlatform && matchesStatus;
   });
 
-  const completedCount = campaigns.filter(
-    (c) => c.status === 'Completed' || c.status === 'Sukses'
+  const runningCount = campaigns.filter(
+    (c) => c.status?.toLowerCase() === 'running' || c.status?.toLowerCase() === 'aktif'
+  ).length;
+
+  const readyCount = campaigns.filter(
+    (c) => c.status?.toLowerCase() === 'ready' || c.status?.toLowerCase() === 'completed'
+  ).length;
+
+  const vetoCount = campaigns.filter(
+    (c) => c.status?.toLowerCase() === 'veto'
   ).length;
 
   const platformIcons = {
@@ -102,10 +128,10 @@ export default function Dashboard() {
             </div>
             <div>
               <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Cara Kerja 5 Sub-Agent TAHRA AI
+                Cara Kerja 5 Sub-Agent TAHRA AI untuk Pemula
               </h4>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                1. Input Parameter Produk → 2. Cek Anti-Boncos & Naskah PAS → 3. Dapatkan Blueprint Ads Manager Siap Pakai.
+              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
+                Tidak perlu paham istilah teknis iklan! AI otomatis meriset pasar, memilihkan platform terbaik, menuliskan naskah video, dan melindungi modal Anda dari risiko rugi.
               </p>
             </div>
           </div>
@@ -116,76 +142,99 @@ export default function Dashboard() {
             onClick={() => navigate('/new')}
             className="shrink-0 text-xs h-8"
           >
-            Mulai Simulasi Baru →
+            Mulai Uji Produk Baru →
           </Button>
         </div>
 
         {/* Metric Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <StatCard
-            title="Total Kampanye"
+            title="Total Produk Diuji"
             value={campaigns.length}
             subtitle="Diuji oleh 5 Multi-Agent"
             icon={<Layers className="w-5 h-5" />}
             isLoading={isLoading}
           />
           <StatCard
-            title="Kampanye Selesai"
-            value={completedCount}
-            subtitle="Strategi Siap Dieksekusi"
-            icon={<ShieldCheck className="w-5 h-5" />}
-            trend={`${Math.round((completedCount / (campaigns.length || 1)) * 100)}% Rasio Siap`}
+            title="Iklan Sedang Tayang"
+            value={runningCount}
+            subtitle="Live Aktif Menghasilkan Penjualan"
+            icon={<PlayCircle className="w-5 h-5" />}
+            trend={`${runningCount} Kampanye Aktif`}
             trendDirection="up"
             isLoading={isLoading}
           />
           <StatCard
-            title="Rata-rata ROAS"
-            value="210"
-            suffix="%"
-            subtitle="Prediksi Nilai Balik Modal"
-            icon={<TrendingUp className="w-5 h-5" />}
-            trend="+35% vs Ads Manual"
+            title="Blueprint Siap Pakai"
+            value={readyCount}
+            subtitle="Tinggal Salin ke Ads Manager"
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            trend="1-Click Copy Ready"
             trendDirection="up"
             isLoading={isLoading}
           />
           <StatCard
-            title="Unit Economics"
-            value="Anti-Boncos"
-            subtitle="Proteksi Margin Minimum 20%"
-            icon={<BarChart3 className="w-5 h-5" />}
+            title="Modal Terproteksi"
+            value={vetoCount}
+            subtitle="Produk Dicegah Boncos (Margin <20%)"
+            icon={<ShieldAlert className="w-5 h-5" />}
             isLoading={isLoading}
           />
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 p-3 bg-neutral-950/60 rounded-2xl border border-neutral-900">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Cari nama produk / kampanye..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900 text-white text-xs sm:text-sm rounded-xl pl-10 pr-4 py-2 border border-neutral-800 focus:outline-none focus:border-rose-500 transition-colors"
-            />
+        {/* Filter Bar: Search + Status Tabs + Platform Filters */}
+        <div className="flex flex-col gap-3 mb-6 p-3 bg-neutral-950/60 rounded-2xl border border-neutral-900">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            {/* Search Box */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari nama produk / kampanye..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-neutral-900 text-white text-xs sm:text-sm rounded-xl pl-10 pr-4 py-2 border border-neutral-800 focus:outline-none focus:border-rose-500 transition-colors"
+              />
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+              {statusTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setSelectedStatus(tab.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    selectedStatus === tab.key
+                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm'
+                      : 'text-neutral-400 hover:text-white bg-neutral-900/60 border border-transparent'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Platform Filter Buttons */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            {platforms.map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedPlatform(p)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                  selectedPlatform === p
-                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm'
-                    : 'text-neutral-400 hover:text-white bg-neutral-900/60 border border-transparent'
-                }`}
-              >
-                {p === 'All' ? 'Semua Platform' : p}
-              </button>
-            ))}
+          {/* Platform Filter Chips */}
+          <div className="flex items-center gap-2 pt-2 border-t border-neutral-900/80 text-xs">
+            <span className="text-[11px] font-black uppercase tracking-wider text-neutral-500">
+              Filter Channel:
+            </span>
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              {platforms.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setSelectedPlatform(p)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all whitespace-nowrap ${
+                    selectedPlatform === p
+                      ? 'bg-neutral-800 text-white border border-neutral-700'
+                      : 'text-neutral-500 hover:text-neutral-300'
+                  }`}
+                >
+                  {p === 'All' ? 'Semua Platform' : p}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -198,13 +247,13 @@ export default function Dashboard() {
           </div>
         ) : filteredCampaigns.length === 0 ? (
           <EmptyState
-            title="Belum Ada Kampanye"
+            title="Tidak Ada Kampanye yang Sesuai"
             description={
-              searchQuery || selectedPlatform !== 'All'
-                ? 'Tidak ada produk yang cocok dengan filter pencarian Anda. Coba sesuaikan kata kunci.'
+              searchQuery || selectedPlatform !== 'All' || selectedStatus !== 'All'
+                ? 'Tidak ada produk yang cocok dengan filter aktif. Coba ubah pencarian atau tab status.'
                 : 'Mulai buat strategi periklanan pertama Anda menggunakan 5 Sub-Agent AI otonom.'
             }
-            actionLabel="Buat Kampanye Pertama"
+            actionLabel="Uji Produk Pertama"
             onAction={() => navigate('/new')}
           />
         ) : (
@@ -212,7 +261,11 @@ export default function Dashboard() {
             {filteredCampaigns.map((c, idx) => {
               const platformKey = (c.platform || 'tiktok').toLowerCase();
               const icon = platformIcons[platformKey] || '📢';
-              const roasDisplay = c.roas || (c.result?.roas_report?.roas_percentage ? `${c.result.roas_report.roas_percentage}%` : '210%');
+              const roasDisplay =
+                c.roas ||
+                (c.result?.roas_report?.roas_percentage
+                  ? `${c.result.roas_report.roas_percentage}%`
+                  : '210%');
 
               return (
                 <Card
@@ -229,7 +282,7 @@ export default function Dashboard() {
                       <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-xl shrink-0">
                         {icon}
                       </div>
-                      <StatusBadge status={c.status || 'Completed'} />
+                      <StatusBadge status={c.status || 'Ready'} />
                     </div>
 
                     <CardTitle className="text-base line-clamp-1 group-hover:text-rose-400 transition-colors">
@@ -253,15 +306,15 @@ export default function Dashboard() {
                   <CardFooter className="pt-3">
                     <div className="flex flex-col">
                       <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">
-                        Target ROAS
+                        Estimasi ROAS (Balik Modal)
                       </span>
                       <span className="text-lg font-black text-rose-400 font-mono tracking-tight">
-                        {roasDisplay}
+                        {c.status?.toLowerCase() === 'veto' ? '-' : roasDisplay}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-white group">
-                      <span>Buka Laporan</span>
+                      <span>{c.status?.toLowerCase() === 'veto' ? 'Lihat Alasan Veto' : 'Buka Blueprint'}</span>
                       <ArrowUpRight className="w-3.5 h-3.5 text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </div>
                   </CardFooter>
@@ -278,7 +331,7 @@ export default function Dashboard() {
                 <Plus className="w-6 h-6 stroke-[3]" />
               </div>
               <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1">
-                Tambah Kampanye
+                Uji Produk Baru
               </h4>
               <p className="text-xs text-neutral-500 font-medium max-w-[200px]">
                 Analisis produk baru dengan simulasi matematis instan

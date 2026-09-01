@@ -8,14 +8,6 @@ import { cn } from '../../utils/cn';
 
 /**
  * Production-ready Badge component
- * @param {Object} props
- * @param {BadgeVariant} [props.variant='brand']
- * @param {BadgeSize} [props.size='md']
- * @param {boolean} [props.hasDot=false]
- * @param {boolean} [props.isPulse=false]
- * @param {React.ReactNode} [props.icon]
- * @param {string} [props.className]
- * @param {React.ReactNode} props.children
  */
 export function Badge({
   variant = 'brand',
@@ -78,37 +70,46 @@ export function Badge({
 
 /**
  * Status Badge for Campaign Statuses
- * @param {{ status: 'Completed' | 'Thinking' | 'Draft' | 'Veto' | string }} props
+ * @param {{ status: 'Running' | 'Completed' | 'Thinking' | 'Draft' | 'Veto' | string }} props
  */
 export function StatusBadge({ status }) {
-  switch (status?.toLowerCase()) {
-    case 'completed':
-    case 'sukses':
-      return (
-        <Badge variant="success" hasDot>
-          Selesai
-        </Badge>
-      );
-    case 'thinking':
-    case 'running':
-    case 'proses':
-      return (
-        <Badge variant="warning" hasDot isPulse>
-          AI Berpikir...
-        </Badge>
-      );
-    case 'veto':
-    case 'rejected':
-      return (
-        <Badge variant="danger" hasDot>
-          Diveto
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="neutral">
-          {status || 'Draft'}
-        </Badge>
-      );
+  const norm = status?.toLowerCase() || '';
+
+  if (norm === 'running' || norm === 'aktif' || norm === 'live') {
+    return (
+      <Badge variant="success" hasDot isPulse>
+        🟢 Iklan Aktif
+      </Badge>
+    );
   }
+
+  if (norm === 'completed' || norm === 'sukses' || norm === 'ready') {
+    return (
+      <Badge variant="brand" hasDot>
+        Blueprint Siap
+      </Badge>
+    );
+  }
+
+  if (norm === 'thinking' || norm === 'proses') {
+    return (
+      <Badge variant="warning" hasDot isPulse>
+        AI Berpikir...
+      </Badge>
+    );
+  }
+
+  if (norm === 'veto' || norm === 'rejected' || norm === 'protected') {
+    return (
+      <Badge variant="danger" hasDot>
+        🛡️ Terproteksi
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="neutral">
+      {status || 'Draft'}
+    </Badge>
+  );
 }
