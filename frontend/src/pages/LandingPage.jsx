@@ -1,124 +1,136 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Bot, ShieldCheck, TrendingUp, Sparkles, Zap, CheckCircle2, DollarSign } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Navbar } from '../components/layout/Navbar';
+import { Footer } from '../components/layout/Footer';
 
 export default function LandingPage() {
   const navigate = useNavigate();
 
+  const features = [
+    {
+      icon: <ShieldCheck className="w-6 h-6 text-rose-500" />,
+      title: 'Anti-Boncos AI Filter',
+      description:
+        'Validasi ketat margin & HPP produk sebelum beriklan. Menolak kampanye secara otomatis jika margin di bawah 20% demi keselamatan modal Anda.',
+    },
+    {
+      icon: <Bot className="w-6 h-6 text-rose-500" />,
+      title: '5 Multi-Agent Spesialis',
+      description:
+        'Product Decoder, Business Consultant, Media Planner, PAS Copywriter, dan ROAS Controller bekerja bersama menghasilkan strategi komprehensif.',
+    },
+    {
+      icon: <TrendingUp className="w-6 h-6 text-rose-500" />,
+      title: 'Simulasi Matematika ROAS',
+      description:
+        'Prediksi CPM, CTR 2%, dan CVR 3% secara presisi untuk memproyeksikan laba bersih harian sebelum satu rupiah pun dihabiskan untuk iklan.',
+    },
+  ];
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'radial-gradient(circle at 50% -20%, rgba(196,30,58,0.25), transparent 70%), #0d0d0d',
-        color: '#f3f4f6',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      {/* Navbar */}
-      <nav
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px 48px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, #e11d48, #9f1239)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 900,
-              fontSize: 22,
-              color: '#fff',
-              boxShadow: '0 0 16px rgba(225,29,72,0.4)',
-            }}
-          >
-            T
-          </div>
-          <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff' }}>
-            TAHRA <span style={{ color: '#f43f5e', fontWeight: 400 }}>AI</span>
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => navigate('/login')}
-            style={{
-              background: 'transparent',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.2)',
-              padding: '8px 20px',
-              borderRadius: 10,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => navigate('/login')}
-            style={{
-              background: 'linear-gradient(135deg, #e11d48, #be123c)',
-              color: '#fff',
-              border: 'none',
-              padding: '8px 20px',
-              borderRadius: 10,
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(225,29,72,0.3)',
-            }}
-          >
-            Get Started
-          </button>
-        </div>
-      </nav>
+    <div className="bg-main min-h-screen flex flex-col justify-between">
+      <Navbar />
 
       {/* Hero Section */}
-      <main style={{ maxWidth: 900, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            color: '#f43f5e',
-            background: 'rgba(244,63,94,0.1)',
-            padding: '6px 14px',
-            borderRadius: 20,
-            border: '1px solid rgba(244,63,94,0.2)',
-          }}
-        >
-          🚀 AI Marketing Agent untuk UMKM
-        </span>
+      <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-32 px-4 sm:px-6 lg:px-8">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-rose-600/15 blur-[120px] pointer-events-none rounded-full" />
 
-        <h1 style={{ fontSize: 56, fontWeight: 900, letterSpacing: '-0.04em', marginTop: 24, color: '#fff', lineHeight: 1.1 }}>Otomatisasi Iklan & Strategi Marketing UMKM dalam Sekejap</h1>
-        <p style={{ color: '#9ca3af', marginTop: 20, fontSize: 18, lineHeight: 1.6, maxWidth: 680, margin: '20px auto 40px' }}>
-          Tahra AI membantu pebisnis merancang ide konten, strategi audiens, hingga prediksi ROAS iklan secara otomatis berbasis kecerdasan buatan.
-        </p>
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 mb-6">
+            <Badge variant="brand" size="md" hasDot isPulse>
+              AI HackFest 2026 • Business Automation Track
+            </Badge>
+          </div>
 
-        <button
-          onClick={() => navigate('/login')}
-          style={{
-            background: 'linear-gradient(135deg, #e11d48, #be123c)',
-            color: '#fff',
-            border: 'none',
-            padding: '16px 36px',
-            borderRadius: 12,
-            fontWeight: 800,
-            fontSize: 16,
-            cursor: 'pointer',
-            boxShadow: '0 6px 20px rgba(225,29,72,0.4)',
-          }}
-        >
-          Coba Sekarang Gratis →
-        </button>
-      </main>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white uppercase leading-[1.08] mb-6 font-sans">
+            AI Marketing Strategist{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-red-500 to-rose-600">
+              Anti-Boncos
+            </span>{' '}
+            Untuk UMKM
+          </h1>
+
+          <p className="text-base sm:text-xl text-neutral-400 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
+            Gantikan agensi periklanan mahal. Sistem <strong className="text-neutral-200">Multi-Agent Otonom</strong> yang membedah unit economics produk, merancang audiens & copywriting PAS, serta memprediksi laba ROAS secara matematis.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+            <Button
+              size="lg"
+              variant="primary"
+              isFullWidth
+              rightIcon={<ArrowRight className="w-5 h-5" />}
+              onClick={() => navigate('/dashboard')}
+            >
+              Mulai Eksplorasi Dashboard
+            </Button>
+            <Button
+              size="lg"
+              variant="secondary"
+              isFullWidth
+              onClick={() => navigate('/new')}
+            >
+              Simulasi Produk Baru
+            </Button>
+          </div>
+
+          {/* Quick Metrics highlight */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mt-16 pt-12 border-t border-neutral-900">
+            {[
+              { val: '5 Agent', label: 'Spesialis Otonom' },
+              { val: '100% JSON', label: 'Strict Parameter' },
+              { val: 'PAS', label: 'Copywriting Framework' },
+              { val: 'Zero', label: 'Risiko Boncos' },
+            ].map((stat, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <span className="text-2xl sm:text-3xl font-black text-white font-mono">
+                  {stat.val}
+                </span>
+                <span className="text-xs text-neutral-500 font-bold uppercase tracking-wider mt-1">
+                  {stat.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-neutral-900/80 bg-neutral-950/40">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-black uppercase tracking-widest text-rose-500">
+              Arsitektur Sistem
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight mt-2">
+              Direkayasa Khusus Untuk Profitabilitas UMKM
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {features.map((feat, idx) => (
+              <Card key={idx} hasRedBar isHoverable className="p-8">
+                <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
+                  {feat.icon}
+                </div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight mb-3">
+                  {feat.title}
+                </h3>
+                <p className="text-sm text-neutral-400 leading-relaxed font-medium">
+                  {feat.description}
+                </p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }

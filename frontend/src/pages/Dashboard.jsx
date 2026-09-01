@@ -1,312 +1,259 @@
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const MOCK = [
-  { id: 1, product_name: 'Sambal TAHRA', status: 'Completed', platform: 'TikTok', roas: '185%', date: '2026-09-01' },
-  { id: 2, product_name: 'Kopi Kekinian', status: 'Thinking', platform: 'Instagram', roas: '-', date: '2026-09-01' },
-  { id: 3, product_name: 'Kaos Distro', status: 'Draft', platform: '-', roas: '-', date: '2026-08-31' },
-];
-
-const Badge = ({ status }) => {
-  const m = {
-    Completed: { cls: 'badge-green', dot: '#34d399', label: 'Selesai', pulse: false },
-    Thinking: { cls: 'badge-yellow', dot: '#fbbf24', label: 'Thinking...', pulse: true },
-    Draft: { cls: 'badge-gray', dot: null, label: 'Draft', pulse: false },
-  };
-  const s = m[status] || m.Draft;
-  return (
-    <span
-      className={`badge ${s.cls}`}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '4px 10px',
-        borderRadius: 20,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-        backdropFilter: 'blur(4px)',
-      }}
-    >
-      {s.dot && (
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: s.dot,
-            display: 'inline-block',
-            boxShadow: `0 0 8px ${s.dot}`,
-            animation: s.pulse ? 'pulse 1.5s ease-in-out infinite' : 'none',
-          }}
-        />
-      )}
-      {s.label}
-    </span>
-  );
-};
+import {
+  Plus,
+  Search,
+  Layers,
+  Sparkles,
+  TrendingUp,
+  ShieldCheck,
+  BarChart3,
+  Filter,
+  ArrowUpRight,
+} from 'lucide-react';
+import { Navbar } from '../components/layout/Navbar';
+import { PageContainer } from '../components/layout/PageContainer';
+import { Footer } from '../components/layout/Footer';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/ui/Card';
+import { StatCard } from '../components/ui/StatCard';
+import { Badge, StatusBadge } from '../components/ui/Badge';
+import { CampaignCardSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
+import { getCampaigns } from '../services/api';
+import { formatRp, formatDate } from '../utils/formatters';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState('All');
 
   useEffect(() => {
-    axios
-      .get('http://localhost:5000/api/campaigns')
-      .then((res) => {
-        setCampaigns(res.data);
-      })
-      .catch((err) => console.error('Gagal mengambil data dari MySQL:', err));
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        const data = await getCampaigns();
+        setCampaigns(data);
+      } catch (err) {
+        console.error('Failed to load campaigns:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
-  const completed = campaigns.filter((c) => c.status === 'Completed').length;
+  const platforms = ['All', 'TikTok', 'Instagram', 'Facebook'];
+
+  const filteredCampaigns = campaigns.filter((c) => {
+    const matchesSearch = c.product_name
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesPlatform =
+      selectedPlatform === 'All' ||
+      c.platform?.toLowerCase() === selectedPlatform.toLowerCase();
+    return matchesSearch && matchesPlatform;
+  });
+
+  const completedCount = campaigns.filter(
+    (c) => c.status === 'Completed' || c.status === 'Sukses'
+  ).length;
+
+  const platformIcons = {
+    tiktok: '🎵',
+    instagram: '📸',
+    facebook: '📢',
+    google: '🔍',
+  };
 
   return (
-    <div
-      className="bg-main"
-      style={{
-        minHeight: '100vh',
-        background: 'radial-gradient(circle at 50% -20%, rgba(196,30,58,0.15), transparent 70%), #0d0d0d',
-        color: '#f3f4f6',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      {/* Navbar */}
-      <nav
-        className="navbar"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '18px 40px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          backdropFilter: 'blur(12px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          background: 'rgba(13,13,13,0.75)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            className="logo-mark"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'linear-gradient(135deg, #e11d48, #9f1239)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 900,
-              fontSize: 20,
-              color: '#fff',
-              boxShadow: '0 0 16px rgba(225,29,72,0.4)',
-            }}
-          >
-            T
-          </div>
-          <span className="logo-text" style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff' }}>
-            TAHRA <span style={{ color: '#f43f5e', fontWeight: 400 }}>AI</span>
-          </span>
-        </div>
-        <button
-          id="btn-new-campaign"
-          className="btn-red"
-          onClick={() => navigate('/new')}
-          style={{
-            background: 'linear-gradient(135deg, #e11d48, #be123c)',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: 10,
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            boxShadow: '0 4px 14px rgba(225,29,72,0.3)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <span style={{ fontSize: 16, fontWeight: 900 }}>+</span> BUAT KAMPANYE BARU
-        </button>
-      </nav>
+    <div className="bg-main min-h-screen flex flex-col justify-between">
+      <Navbar />
 
-      <main style={{ maxWidth: 1120, margin: '0 auto', padding: '48px 24px' }}>
-        {/* Title */}
-        <div className="fade-up" style={{ marginBottom: 36 }}>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: '#f43f5e',
-              background: 'rgba(244,63,94,0.1)',
-              padding: '4px 10px',
-              borderRadius: 6,
-            }}
-          >
-            Overview
-          </span>
-          <h1 style={{ fontSize: 38, fontWeight: 900, letterSpacing: '-0.03em', marginTop: 12, color: '#fff' }}>DASHBOARD KAMPANYE</h1>
-          <p style={{ color: '#9ca3af', marginTop: 6, fontSize: 14 }}>Kelola dan optimalkan strategi iklan UMKM kamu secara otomatis</p>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 44 }}>
-          {[
-            { label: 'Total Kampanye', value: campaigns.length, suffix: '', icon: '📊' },
-            { label: 'Kampanye Selesai', value: completed, suffix: '', icon: '✅' },
-            { label: 'Avg ROAS', value: '185', suffix: '%', icon: '🔥' },
-          ].map((s, i) => (
-            <div
-              key={i}
-              className="stat-card fade-up"
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                padding: 24,
-                borderRadius: 16,
-                backdropFilter: 'blur(8px)',
-                transition: 'transform 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500, marginBottom: 8 }}>{s.label}</div>
-                  <div style={{ fontSize: 36, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em' }}>
-                    {s.value}
-                    <span style={{ fontSize: 22, color: '#f43f5e' }}>{s.suffix}</span>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontSize: 22,
-                    background: 'rgba(255,255,255,0.05)',
-                    padding: 10,
-                    borderRadius: 12,
-                    border: '1px solid rgba(255,255,255,0.05)',
-                  }}
-                >
-                  {s.icon}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Section Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.05em' }}>KAMPANYE TERBARU ({campaigns.length})</p>
-        </div>
-
-        {/* Campaign Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-          {campaigns.map((c, i) => (
-            <div
-              key={i}
-              id={`card-${c.id || i}`}
-              className="card card-lift fade-up"
-              style={{
-                background: 'rgba(255,255,255,0.025)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 16,
-                padding: 24,
-                cursor: 'pointer',
-                transition: 'all 0.25s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-              onClick={() => navigate(`/campaign/${c.id || i}`, { state: { campaign: c } })}
-            >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-                  <div
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 12,
-                      background: 'rgba(244,63,94,0.1)',
-                      border: '1px solid rgba(244,63,94,0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 20,
-                    }}
-                  >
-                    {c.platform === 'TikTok' ? '🎵' : c.platform === 'Instagram' ? '📸' : '📢'}
-                  </div>
-                  <Badge status={c.status} />
-                </div>
-
-                <div style={{ width: 28, height: 3, background: '#f43f5e', borderRadius: 2, marginBottom: 12 }} />
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6, letterSpacing: '-0.01em' }}>{c.product_name}</h3>
-                <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
-                  {c.platform !== '-' ? c.platform : 'Belum diproses'} · {c.date}
-                </p>
-              </div>
-
-              {c.status === 'Completed' && (
-                <div
-                  style={{
-                    paddingTop: 14,
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, letterSpacing: '0.05em' }}>ROAS TARGET</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: '#f43f5e' }}>{c.roas}</span>
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* Add New Card */}
-          <div
-            className="card fade-up"
-            style={{
-              padding: 24,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 180,
-              borderRadius: 16,
-              border: '2px dashed rgba(244,63,94,0.3)',
-              background: 'rgba(244,63,94,0.02)',
-              transition: 'all 0.2s ease',
-            }}
+      <PageContainer
+        badge="Overview Strategis"
+        title="Dashboard Kampanye"
+        description="Kelola, pantau, dan lakukan simulasi matematika periklanan anti-boncos untuk seluruh produk UMKM Anda."
+        actions={
+          <Button
+            variant="primary"
+            leftIcon={<Plus className="w-4 h-4 stroke-[3]" />}
             onClick={() => navigate('/new')}
           >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: 'rgba(244,63,94,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 22,
-                color: '#f43f5e',
-                marginBottom: 10,
-              }}
-            >
-              +
-            </div>
-            <p style={{ fontSize: 13, color: '#f43f5e', fontWeight: 700, letterSpacing: '0.02em' }}>BUAT KAMPANYE BARU</p>
+            Buat Kampanye Baru
+          </Button>
+        }
+      >
+        {/* Metric Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          <StatCard
+            title="Total Kampanye"
+            value={campaigns.length}
+            subtitle="Diuji oleh 5 Multi-Agent"
+            icon={<Layers className="w-5 h-5" />}
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Kampanye Selesai"
+            value={completedCount}
+            subtitle="Strategi Siap Dieksekusi"
+            icon={<ShieldCheck className="w-5 h-5" />}
+            trend={`${Math.round((completedCount / (campaigns.length || 1)) * 100)}% Rasio Siap`}
+            trendDirection="up"
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Rata-rata ROAS"
+            value="210"
+            suffix="%"
+            subtitle="Prediksi Nilai Balik Modal"
+            icon={<TrendingUp className="w-5 h-5" />}
+            trend="+35% vs Ads Biasa"
+            trendDirection="up"
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Unit Economics"
+            value="Anti-Boncos"
+            subtitle="Proteksi Margin Minimum 20%"
+            icon={<BarChart3 className="w-5 h-5" />}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {/* Filter & Search Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 p-3 bg-neutral-950/60 rounded-2xl border border-neutral-900">
+          {/* Search Box */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari nama produk / kampanye..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-neutral-900 text-white text-xs sm:text-sm rounded-xl pl-10 pr-4 py-2 border border-neutral-800 focus:outline-none focus:border-rose-500 transition-colors"
+            />
+          </div>
+
+          {/* Platform Filter Buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {platforms.map((p) => (
+              <button
+                key={p}
+                onClick={() => setSelectedPlatform(p)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  selectedPlatform === p
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm'
+                    : 'text-neutral-400 hover:text-white bg-neutral-900/60 border border-transparent'
+                }`}
+              >
+                {p === 'All' ? 'Semua Platform' : p}
+              </button>
+            ))}
           </div>
         </div>
-      </main>
+
+        {/* Campaign List Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3].map((n) => (
+              <CampaignCardSkeleton key={n} />
+            ))}
+          </div>
+        ) : filteredCampaigns.length === 0 ? (
+          <EmptyState
+            title="Tidak Ada Kampanye Ditemukan"
+            description={
+              searchQuery || selectedPlatform !== 'All'
+                ? 'Tidak ada produk yang cocok dengan filter pencarian Anda. Coba sesuaikan kata kunci.'
+                : 'Mulai buat strategi periklanan pertama Anda menggunakan 5 Sub-Agent AI otonom.'
+            }
+            actionLabel="Buat Kampanye Pertama"
+            onAction={() => navigate('/new')}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredCampaigns.map((c, idx) => {
+              const platformKey = (c.platform || 'tiktok').toLowerCase();
+              const icon = platformIcons[platformKey] || '📢';
+              const roasDisplay = c.roas || (c.result?.roas_report?.roas_percentage ? `${c.result.roas_report.roas_percentage}%` : '210%');
+
+              return (
+                <Card
+                  key={c.id || idx}
+                  hasRedBar
+                  isHoverable
+                  onClick={() =>
+                    navigate(`/campaign/${c.id || idx}`, { state: { campaign: c } })
+                  }
+                  className="flex flex-col justify-between"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-xl shrink-0">
+                        {icon}
+                      </div>
+                      <StatusBadge status={c.status || 'Completed'} />
+                    </div>
+
+                    <CardTitle className="text-base line-clamp-1 group-hover:text-rose-400 transition-colors">
+                      {c.product_name}
+                    </CardTitle>
+
+                    <CardDescription>
+                      {c.platform || 'Multi-Platform'} • {formatDate(c.created_at || c.date)}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed font-medium">
+                      {c.target_audience ||
+                        c.result?.product?.audience_psychography ||
+                        'Target audiens UMKM yang telah disesuaikan oleh Sub-Agent 1A & 3.'}
+                    </p>
+                  </CardContent>
+
+                  <CardFooter className="pt-3">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">
+                        Target ROAS
+                      </span>
+                      <span className="text-lg font-black text-rose-400 font-mono tracking-tight">
+                        {roasDisplay}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-white group">
+                      <span>Buka Laporan</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </div>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+
+            {/* Quick Add Card Slot */}
+            <div
+              onClick={() => navigate('/new')}
+              className="rounded-2xl border-2 border-dashed border-neutral-800 hover:border-rose-500/50 bg-neutral-950/30 hover:bg-rose-500/[0.02] p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 group min-h-[220px]"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 group-hover:scale-110 group-hover:bg-rose-500 group-hover:text-white transition-all shadow-[0_0_20px_rgba(244,63,94,0.15)] mb-3">
+                <Plus className="w-6 h-6 stroke-[3]" />
+              </div>
+              <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1">
+                Tambah Kampanye
+              </h4>
+              <p className="text-xs text-neutral-500 font-medium max-w-[200px]">
+                Analisis produk baru dengan simulasi matematis instan
+              </p>
+            </div>
+          </div>
+        )}
+      </PageContainer>
+
+      <Footer />
     </div>
   );
 }

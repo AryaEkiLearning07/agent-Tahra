@@ -1,148 +1,192 @@
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { ArrowRight, Lock, Mail, User, Building, Sparkles } from 'lucide-react';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Alert } from '../components/ui/Alert';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleAuth = (e) => {
+  const [form, setForm] = useState({
+    name: '',
+    company: '',
+    email: 'demo@tahra.ai',
+    password: 'password123',
+  });
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setLoading(true);
+    setError('');
+
+    setTimeout(() => {
+      if (!form.email || !form.password) {
+        setError('Mohon lengkapi email dan password Anda.');
+        setLoading(false);
+        return;
+      }
+
+      login({
+        name: form.name || (isSignUp ? 'Ahmad Rasyid' : 'Owner TAHRA'),
+        email: form.email,
+        company: form.company || 'UMKM Maju Nusantara',
+      });
+
+      setLoading(false);
+      navigate('/dashboard');
+    }, 600);
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'radial-gradient(circle at 50% -20%, rgba(196,30,58,0.25), transparent 70%), #0d0d0d',
-        color: '#f3f4f6',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 400,
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 24,
-          padding: 36,
-          backdropFilter: 'blur(12px)',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #e11d48, #9f1239)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 900,
-            fontSize: 24,
-            color: '#fff',
-            margin: '0 auto 16px',
-            boxShadow: '0 0 20px rgba(225,29,72,0.4)',
-          }}
-        >
-          T
+    <div className="bg-main min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-rose-600/10 blur-[140px] pointer-events-none rounded-full" />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Brand header */}
+        <div className="text-center mb-8">
+          <div
+            onClick={() => navigate('/')}
+            className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 text-white font-black text-2xl shadow-[0_0_30px_rgba(244,63,94,0.4)] mb-4 cursor-pointer hover:scale-105 transition-transform"
+          >
+            T
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+            {isSignUp ? 'Daftar Akun Baru' : 'Selamat Datang Kembali'}
+          </h1>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1 font-medium">
+            {isSignUp
+              ? 'Mulai simulasi kampanye iklan otomatis tanpa risiko boncos'
+              : 'Akses dashboard orkestrasi kampanye TAHRA AI'}
+          </p>
         </div>
 
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>{isSignUp ? 'Buat Akun Baru' : 'Selamat Datang Kembali'}</h2>
-        <p style={{ color: '#9ca3af', fontSize: 13, marginTop: 6, marginBottom: 24 }}>{isSignUp ? 'Daftar untuk mulai mengelola kampanye AI' : 'Masuk ke akun TAHRA AI kamu'}</p>
-
-        <form onSubmit={handleAuth} style={{ display: 'grid', gap: 16, textAlign: 'left' }}>
-          {isSignUp && (
-            <div>
-              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6 }}>NAMA LENGKAP</label>
-              <input
-                type="text"
-                required
-                placeholder="Ahmad Rasyid"
-                style={{
-                  width: '100%',
-                  background: 'rgba(0,0,0,0.4)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  padding: '12px 14px',
-                  borderRadius: 10,
-                  color: '#fff',
-                  fontSize: 13,
-                  outline: 'none',
-                }}
-              />
-            </div>
-          )}
-
-          <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6 }}>EMAIL</label>
-            <input
-              type="email"
-              required
-              placeholder="nama@umkm.com"
-              style={{
-                width: '100%',
-                background: 'rgba(0,0,0,0.4)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                padding: '12px 14px',
-                borderRadius: 10,
-                color: '#fff',
-                fontSize: 13,
-                outline: 'none',
+        <Card hasRedBar className="p-6 sm:p-8">
+          {/* Mode Switcher Tabs */}
+          <div className="grid grid-cols-2 gap-1 p-1 bg-neutral-900 rounded-xl mb-6 border border-neutral-800">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(false);
+                setError('');
               }}
-            />
+              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                !isSignUp
+                  ? 'bg-rose-500 text-white shadow-md shadow-rose-950/40'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Masuk (Sign In)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(true);
+                setError('');
+              }}
+              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                isSignUp
+                  ? 'bg-rose-500 text-white shadow-md shadow-rose-950/40'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Daftar (Sign Up)
+            </button>
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#9ca3af', marginBottom: 6 }}>PASSWORD</label>
-            <input
+          {error && (
+            <Alert variant="danger" className="mb-5" onClose={() => setError('')}>
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {isSignUp && (
+              <>
+                <Input
+                  label="Nama Lengkap"
+                  id="name"
+                  type="text"
+                  required
+                  placeholder="e.g. Ahmad Rasyid"
+                  prefix={<User className="w-4 h-4" />}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+
+                <Input
+                  label="Nama Usaha / Brand UMKM"
+                  id="company"
+                  type="text"
+                  required
+                  placeholder="e.g. Sambal TAHRA Nusantara"
+                  prefix={<Building className="w-4 h-4" />}
+                  value={form.company}
+                  onChange={(e) => setForm({ ...form, company: e.target.value })}
+                />
+              </>
+            )}
+
+            <Input
+              label="Alamat Email"
+              id="email"
+              type="email"
+              required
+              placeholder="owner@tahra.id"
+              prefix={<Mail className="w-4 h-4" />}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+
+            <Input
+              label="Kata Sandi (Password)"
+              id="password"
               type="password"
               required
               placeholder="••••••••"
-              style={{
-                width: '100%',
-                background: 'rgba(0,0,0,0.4)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                padding: '12px 14px',
-                borderRadius: 10,
-                color: '#fff',
-                fontSize: 13,
-                outline: 'none',
-              }}
+              prefix={<Lock className="w-4 h-4" />}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              isFullWidth
+              isLoading={loading}
+              loadingText="Memvalidasi Kredensial..."
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+              className="mt-2"
+            >
+              {isSignUp ? 'Daftar Sekarang' : 'Masuk ke Dashboard'}
+            </Button>
+          </form>
+
+          {/* Quick Demo hint */}
+          <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
+            <p className="text-[11px] text-neutral-500 font-medium">
+              💡 Demo Mode Aktif: Klik langsung "Masuk" untuk eksplorasi tanpa ribet.
+            </p>
           </div>
+        </Card>
 
+        {/* Back to home */}
+        <div className="text-center mt-6">
           <button
-            type="submit"
-            style={{
-              width: '100%',
-              background: 'linear-gradient(135deg, #e11d48, #be123c)',
-              color: '#fff',
-              border: 'none',
-              padding: '12px',
-              borderRadius: 10,
-              fontWeight: 800,
-              fontSize: 14,
-              cursor: 'pointer',
-              marginTop: 8,
-              boxShadow: '0 4px 14px rgba(225,29,72,0.3)',
-            }}
+            onClick={() => navigate('/')}
+            className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors"
           >
-            {isSignUp ? 'Sign Up' : 'Sign In'} →
+            ← Kembali ke Halaman Depan
           </button>
-        </form>
-
-        <p style={{ color: '#9ca3af', fontSize: 12, marginTop: 20 }}>
-          {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
-          <span onClick={() => setIsSignUp(!isSignUp)} style={{ color: '#f43f5e', fontWeight: 700, cursor: 'pointer' }}>
-            {isSignUp ? 'Sign In' : 'Daftar Sekarang'}
-          </span>
-        </p>
+        </div>
       </div>
     </div>
   );
