@@ -10,6 +10,9 @@ import {
   BarChart3,
   Filter,
   ArrowUpRight,
+  Bot,
+  Zap,
+  HelpCircle,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -20,11 +23,13 @@ import { StatCard } from '../components/ui/StatCard';
 import { Badge, StatusBadge } from '../components/ui/Badge';
 import { CampaignCardSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { useAuth } from '../context/AuthContext';
 import { getCampaigns } from '../services/api';
 import { formatRp, formatDate } from '../utils/formatters';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,14 +73,17 @@ export default function Dashboard() {
     google: '🔍',
   };
 
+  const displayName = user?.name || 'Owner UMKM';
+  const displayCompany = user?.company || 'Pebisnis Digital';
+
   return (
     <div className="bg-main min-h-screen flex flex-col justify-between">
       <Navbar />
 
       <PageContainer
-        badge="Overview Strategis"
-        title="Dashboard Kampanye"
-        description="Kelola, pantau, dan lakukan simulasi matematika periklanan anti-boncos untuk seluruh produk UMKM Anda."
+        badge="Pusat Komando Strategi AI"
+        title={`Dashboard Kampanye • ${displayCompany}`}
+        description={`Selamat datang kembali, ${displayName}! Pantau seluruh simulasi iklan anti-boncos dan strategi periklanan produk Anda dalam satu dasbor terpadu.`}
         actions={
           <Button
             variant="primary"
@@ -86,6 +94,32 @@ export default function Dashboard() {
           </Button>
         }
       >
+        {/* Onboarding / Workflow Quick Guide Banner */}
+        <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/40 via-neutral-950/60 to-rose-950/30 border border-rose-500/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-md">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                Cara Kerja 5 Sub-Agent TAHRA AI
+              </h4>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                1. Input Parameter Produk → 2. Cek Anti-Boncos & Naskah PAS → 3. Dapatkan Blueprint Ads Manager Siap Pakai.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/new')}
+            className="shrink-0 text-xs h-8"
+          >
+            Mulai Simulasi Baru →
+          </Button>
+        </div>
+
         {/* Metric Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <StatCard
@@ -110,7 +144,7 @@ export default function Dashboard() {
             suffix="%"
             subtitle="Prediksi Nilai Balik Modal"
             icon={<TrendingUp className="w-5 h-5" />}
-            trend="+35% vs Ads Biasa"
+            trend="+35% vs Ads Manual"
             trendDirection="up"
             isLoading={isLoading}
           />
@@ -164,7 +198,7 @@ export default function Dashboard() {
           </div>
         ) : filteredCampaigns.length === 0 ? (
           <EmptyState
-            title="Tidak Ada Kampanye Ditemukan"
+            title="Belum Ada Kampanye"
             description={
               searchQuery || selectedPlatform !== 'All'
                 ? 'Tidak ada produk yang cocok dengan filter pencarian Anda. Coba sesuaikan kata kunci.'
@@ -210,8 +244,9 @@ export default function Dashboard() {
                   <CardContent className="pt-0">
                     <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed font-medium">
                       {c.target_audience ||
+                        c.result?.agent1_research?.target_demography ||
                         c.result?.product?.audience_psychography ||
-                        'Target audiens UMKM yang telah disesuaikan oleh Sub-Agent 1A & 3.'}
+                        'Target audiens UMKM yang telah disesuaikan oleh Sub-Agent 1 & 2.'}
                     </p>
                   </CardContent>
 
