@@ -6,7 +6,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('tahra_auth_user');
-      return saved ? JSON.parse(saved) : { name: 'Ahmad Rasyid', email: 'owner@sambaltahra.id', company: 'Sambal TAHRA Nusantara' };
+      return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }

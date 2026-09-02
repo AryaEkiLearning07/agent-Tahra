@@ -213,45 +213,6 @@ CREATE TABLE `campaign_daily_telemetry` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
--- SEED DATA AWAL (DEMO UMKM REALISTIS)
+-- DATABASE INITIALIZATION COMPLETE (READY FOR LIVE CAMPAIGNS)
 -- ============================================================================
 
-INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `business_name`, `whatsapp_number`, `role`)
-VALUES 
-(1, 'Ahmad Rasyid', 'ahmad@tahranusantara.com', '$2b$12$e8Y7Z1K8W9N0J1M2L3K4E5A6B7C8D9E0F1G2H3I4J5K6L7M8N9O0P', 'Sambal TAHRA Nusantara', '081289123456', 'umkm_owner');
-
-INSERT INTO `ad_wallets` (`id`, `user_id`, `saldo_tersedia`, `total_ad_spend_murni`, `total_ai_service_fee`)
-VALUES 
-(1, 1, 500000, 450000, 50000);
-
-INSERT INTO `wallet_transactions` (`id`, `user_id`, `transaction_type`, `amount`, `payment_gateway`, `payment_status`, `reference_invoice`)
-VALUES 
-(1, 1, 'TOPUP_DEPOSIT', 500000, 'QRIS_BCA', 'SUCCESS', 'INV-TAHRA-20260901-001');
-
-INSERT INTO `products` (`id`, `user_id`, `product_name`, `kategori`, `harga_jual`, `hpp`, `margin_nominal`, `margin_percentage`, `destination_type`, `destination_value`)
-VALUES 
-(1, 1, 'Sambal Cumi Asin TAHRA 150g', 'Fisik', 35000, 15000, 20000, 57.14, 'whatsapp', '081289123456');
-
-INSERT INTO `campaigns` (`id`, `user_id`, `product_id`, `campaign_name`, `budget_harian`, `platform_terpilih`, `status`, `funnel_phase`, `is_vetoed`)
-VALUES 
-(1788292353230, 1, 1, 'TAHRA_SAMBAL_CUMI_TIKTOK_FASE2', 100000, 'TikTok', 'Running', 'fase2', FALSE);
-
-INSERT INTO `agent_research_outputs` (`campaign_id`, `competitor_proxy`, `usp`, `pain_points`, `target_demography`, `audience_psychography`, `data_foundation`)
-VALUES 
-(1788292353230, 'Sambal Bu Rudy / Sambal Kemasan Supermarket', 'Cumi asin melimpah dengan minyak cabai segar alami tanpa bahan pengawet.', '["Bosan sambal kemasan yang hambar", "Cumi di sambal pasaran sangat sedikit dan amis"]', 'Pria & Wanita 18-35 tahun, Urban Jawa-Bali', 'Pecinta kuliner pedas praktis yang suka makan nasi hangat di kos/rumah.', 'Kategori FMCG Kuliner Pedas memiliki interaksi video TikTok tertinggi di Indonesia.');
-
-INSERT INTO `agent_strategy_outputs` (`campaign_id`, `format_iklan`, `aspect_ratio`, `bidding_model`, `max_cpa_limit`, `strategic_rationale`, `data_foundation`)
-VALUES 
-(1788292353230, 'Video Pendek (9:16)', '9:16', 'CPA / Conversion', 7000, 'Margin 57.1% sangat sehat! Format video vertikal 9:16 di TikTok ideal untuk produk visual FMCG.', 'Plafon CPA maksimal Rp 7.000 menjaga laba bersih tetap positif di setiap pembelian.');
-
-INSERT INTO `agent_creative_outputs` (`campaign_id`, `headline`, `primary_text_pas`, `cta_text`, `video_hook_0_3s`, `video_body_3_10s`, `video_cta_10_15s`, `data_foundation`)
-VALUES 
-(1788292353230, 'Pedas Nendang, Cumi Asinnya Gak Pelit!', 'Bosan sama sambal biasa yang cuminya cuma mitos? Sambal Cumi TAHRA dibuat dari 100% cabai segar...', 'Pesan Sekarang Gratis Ongkir 🔥', 'Sendok menyendok sambal cumi melimpah disiram di atas nasi panas.', 'Tunjukkan tekstur cumi kenyal gurih dan cabai merah menyala.', 'Klik keranjang kuning sekarang, diskon 20% khusus hari ini!', 'Hook visual makanan hangat terbukti menahan scroll 3 detik pertama hingga 68%.');
-
-INSERT INTO `agent_visual_outputs` (`campaign_id`, `image_prompt_8k`, `visual_mood`, `recommended_composition`, `data_foundation`)
-VALUES 
-(1788292353230, 'Cinematic food commercial photograph of spicy squid chili paste in glass jar, steamy hot rice, dark background, 8k resolution, 9:16 ratio.', 'Cinematic, Rich, Red Glow', 'Centered macro shot on rustic wooden table with steam rising.', 'Komposisi makro makanan terbukti mendongkrak CTR iklan hingga 35%.');
-
-INSERT INTO `agent_deploy_outputs` (`campaign_id`, `qc_status`, `qc_notes`, `ads_manager_payload`, `roas_percentage`, `estimasi_tayangan`, `estimasi_klik`, `estimasi_pembeli`, `estimasi_omzet`, `estimasi_laba_bersih`, `formula_breakdown`, `tracking_link`)
-VALUES 
-(1788292353230, 'APPROVED', 'QA Passed: Seluruh parameter produk dan rasio visual konsisten.', '{"campaign_name": "TAHRA_SAMBAL_CUMI", "objective": "CONVERSIONS", "daily_budget": 100000}', 240.00, 5000, 140, 5, 175000, 35000, '1. Tayangan: 5.000 | 2. Klik: 140 | 3. Pembeli: 5 | 4. Omzet: Rp 175.000 | 5. Laba: Rp 35.000', 'https://tahra.ai/track?id=1788292353230&funnel=fase2');
