@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # 1. DATABASE SERVICE (PostgreSQL 16)
+  # -------------------------------------------------------------
+  tahra-db:
+    image: postgres:16-alpine
+    container_name: tahra-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tahra_db}
+      POSTGRES_USER: ${POSTGRES_USER:-tahra_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tahra_secret_2026}
+    volumes:
+      - tahra_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tahra_admin} -d ${POSTGRES_DB:-tahra_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tahra-network
+
+  # -------------------------------------------------------------
+  # 2. FASTAPI MULTI-AGENT BACKEND
+  # -------------------------------------------------------------
+  tahra-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tahra-backend
+    restart: unless-stopped
+    depends_on:
+      tahra-db:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-tahra_admin}:${POSTGRES_PASSWORD:-tahra_secret_2026}@tahra-db:5432/${POSTGRES_DB:-tahra_db}
+      - GROQ_API_KEY=${GROQ_API_KEY:-gsk_placeholder}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - LLM_PROVIDER=${LLM_PROVIDER:-groq}
+      - LLM_MODEL=${LLM_MODEL:-llama-3.3-70b-versatile}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.groq.com/openai/v1}
+    ports:
+      - "8000:8000"
+    networks:
+      - tahra-network
+
+  # -------------------------------------------------------------
+  # 3. REACT + NGINX FRONTEND
+  # -------------------------------------------------------------
+  tahra-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tahra-frontend
+    restart: unless-stopped
+    depends_on:
+      - tahra-backend
+    ports:
+      - "80:80"
+    networks:
+      - tahra-network
+
+volumes:
+  tahra_db_data:
+    driver: local
+
+networks:
+  tahra-network:
+    driver: bridge
