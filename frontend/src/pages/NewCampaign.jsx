@@ -4,37 +4,24 @@ import {
   Sparkles,
   DollarSign,
   TrendingUp,
-  ShieldAlert,
-  Bot,
-  HelpCircle,
-  ArrowRight,
-  Layers,
-  Search,
+  ShieldCheck,
   Target,
-  FileText,
-  Image as ImageIcon,
-  Cpu,
-  UploadCloud,
-  MessageCircle,
+  ArrowRight,
   ShoppingBag,
-  CreditCard,
-  QrCode,
+  MessageCircle,
+  Globe,
   CheckCircle2,
-  X,
+  AlertCircle,
+  Layers,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Footer } from '../components/layout/Footer';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
 import { Button } from '../components/ui/Button';
-import { Alert } from '../components/ui/Alert';
-import { Badge } from '../components/ui/Badge';
-import { AgentThinkingModal } from '../components/feedback/AgentThinkingModal';
-import { runAgentPipeline, saveCampaign } from '../services/api';
-import { calculateMargin, formatRp } from '../utils/formatters';
+import { Input } from '../components/ui/Input';
+import { formatRp } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
+import { cn } from '../utils/cn';
 
 export default function NewCampaign() {
   const navigate = useNavigate();
@@ -52,221 +39,63 @@ export default function NewCampaign() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Smart Prompt & Parameter State
-  const [promptText, setPromptText] = useState('');
-  const [isManualEdit, setIsManualEdit] = useState(false);
-  const [form, setForm] = useState({
-    product_name: '',
-    harga_jual: '35000',
-    hpp: '15000',
-    budget_harian: '100000',
-    kategori: 'Otomatis AI',
-    platform: 'TikTok',
-    destination_type: 'whatsapp', // 'whatsapp' | 'website' | 'marketplace'
-    destination_value: '081289123456',
-    detected_packages: [],
-    selected_package: '100000',
-    photo_file: null,
-    photo_preview: null,
-  });
+  // Clean, Direct Form State
+  const [productName, setProductName] = useState('');
+  const [kategori, setKategori] = useState('Fisik');
+  const [hargaJual, setHargaJual] = useState('');
+  const [hpp, setHpp] = useState('');
+  const [budgetHarian, setBudgetHarian] = useState(100000);
+  const [destinationType, setDestinationType] = useState('whatsapp'); // 'whatsapp' | 'website'
+  const [destinationValue, setDestinationValue] = useState('');
+  const [errors, setErrors] = useState({});
 
-  const [formErrors, setFormErrors] = useState({});
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStageIndex, setCurrentStageIndex] = useState(0);
-  const [thoughtLogs, setThoughtLogs] = useState([]);
-  const [isVetoed, setIsVetoed] = useState(false);
-  const [vetoAdvice, setVetoAdvice] = useState('');
+  // Dynamic Margin Calculation
+  const hargaNum = Number(hargaJual) || 0;
+  const hppNum = Number(hpp) || 0;
+  const marginVal = Math.max(0, hargaNum - hppNum);
+  const marginPct = hargaNum > 0 ? ((marginVal / hargaNum) * 100).toFixed(1) : 0;
+  const isHealthyMargin = Number(marginPct) >= 20;
 
-  // Universal Semantic Parser: Automatically extracts product, prices, packages, and contact from prompt
-  const parsePromptToParams = (text) => {
-    if (!text.trim()) return;
-
-    const tLower = text.toLowerCase();
-
-    // 1. Detect Phone Number / WhatsApp
-    const phoneMatch = text.match(/(?:08|628|\+628)[0-9\-\s]{8,14}/);
-    let destType = 'whatsapp';
-    let destVal = '081289123456';
-    if (phoneMatch) {
-      destVal = phoneMatch[0].replace(/[^0-9]/g, '');
-      destType = 'whatsapp';
-    } else if (tLower.includes('http') || tLower.includes('.com') || tLower.includes('.id') || tLower.includes('website')) {
-      const urlMatch = text.match(/https?:\/\/[^\s]+|[a-zA-Z0-9-]+\.(?:com|id|co\.id|net|io)[^\s]*/);
-      if (urlMatch) {
-        destVal = urlMatch[0];
-        destType = 'website';
-      }
-    } else if (tLower.includes('shopee') || tLower.includes('tokopedia') || tLower.includes('tiktok shop')) {
-      destType = 'marketplace';
-      destVal = 'Toko Resmi Marketplace';
-    }
-
-    // 2. Extract Prices & Numbers (e.g. 300rb, 300.000, 300k, 35000, 1.2jt)
-    const priceMatches = [];
-    const rbRegex = /(\d+(?:[.,]\d+)?)\s*(?:rb|k|ribu)/gi;
-    let m;
-    while ((m = rbRegex.exec(text)) !== null) {
-      const num = parseFloat(m[1].replace(',', '.')) * 1000;
-      priceMatches.push(Math.round(num));
-    }
-    const jtRegex = /(\d+(?:[.,]\d+)?)\s*(?:jt|juta)/gi;
-    while ((m = jtRegex.exec(text)) !== null) {
-      const num = parseFloat(m[1].replace(',', '.')) * 1000000;
-      priceMatches.push(Math.round(num));
-    }
-    const rawNumRegex = /rp\s*(\d{1,3}(?:\.\d{3})+|\d{4,9})/gi;
-    while ((m = rawNumRegex.exec(text)) !== null) {
-      const num = parseInt(m[1].replace(/\./g, ''), 10);
-      priceMatches.push(num);
-    }
-
-    let detectedPrice = 35000;
-    let detectedHpp = 15000;
-    let packages = [];
-
-    if (priceMatches.length === 1) {
-      detectedPrice = priceMatches[0];
-      detectedHpp = Math.round(detectedPrice * 0.45);
-      packages = [{ name: 'Paket Utama', price: detectedPrice }];
-    } else if (priceMatches.length >= 2) {
-      // Multiple prices detected (Multi-package or Price + HPP)
-      if (tLower.includes('modal') || tLower.includes('hpp')) {
-        detectedPrice = Math.max(...priceMatches);
-        detectedHpp = Math.min(...priceMatches);
-        packages = [{ name: 'Produk Utama', price: detectedPrice }];
-      } else {
-        priceMatches.sort((a, b) => a - b);
-        detectedPrice = priceMatches[0]; // Base package
-        detectedHpp = Math.round(detectedPrice * 0.4);
-        packages = priceMatches.map((p, idx) => ({
-          name: idx === 0 ? 'Paket Basic' : idx === 1 ? 'Paket Pro / Video' : `Paket Tier ${idx + 1}`,
-          price: p,
-        }));
-      }
-    } else {
-      // Default intelligent estimation if no price mentioned
-      if (tLower.includes('jasa') || tLower.includes('foto') || tLower.includes('kursus') || tLower.includes('desain')) {
-        detectedPrice = 300000;
-        detectedHpp = 120000;
-      } else if (tLower.includes('kaos') || tLower.includes('baju') || tLower.includes('fashion')) {
-        detectedPrice = 85000;
-        detectedHpp = 38000;
-      } else if (tLower.includes('kucing') || tLower.includes('pet')) {
-        detectedPrice = 25000;
-        detectedHpp = 10000;
-      } else {
-        detectedPrice = 35000;
-        detectedHpp = 15000;
-      }
-    }
-
-    // 3. Extract Clean Product Name (Strip boilerplate words)
-    let cleanName = text
-      .replace(/(?:ada|paket|harga|rp|nomor|wa|whatsapp|hubungi|kontak|di|murah|promo|diskon|\.com|\.id)[^,\n]*/gi, '')
-      .replace(/[0-9\-\s]{8,14}/g, '')
-      .replace(/[,;.]+/g, ' ')
-      .trim();
-
-    if (!cleanName || cleanName.length < 3) {
-      cleanName = text.split(/[,\n.]/)[0].trim();
-    }
-    if (cleanName.length > 50) {
-      cleanName = cleanName.slice(0, 50);
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      product_name: cleanName || text.slice(0, 40),
-      harga_jual: String(detectedPrice),
-      hpp: String(detectedHpp),
-      destination_type: destType,
-      destination_value: destVal,
-      detected_packages: packages,
-    }));
-  };
-
-  const handlePromptChange = (e) => {
-    const val = e.target.value;
-    setPromptText(val);
-    parsePromptToParams(val);
-  };
-
-  const handleApplyPreset = (presetText) => {
-    setPromptText(presetText);
-    parsePromptToParams(presetText);
-  };
-
-  // Live Unit Economics Calculation
-  const marginData = calculateMargin(form.harga_jual, form.hpp);
-  const hasValues = Number(form.harga_jual) > 0 && Number(form.hpp) > 0;
-  const budgetNum = Number(form.budget_harian) || 100000;
-  const adSpendPure = Math.round(budgetNum * 0.9);
-  const aiFee = Math.round(budgetNum * 0.1);
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm({
-        ...form,
-        photo_file: file,
-        photo_preview: URL.createObjectURL(file),
-      });
-    }
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.product_name.trim() && !promptText.trim()) errs.product_name = 'Ceritakan produk atau jasa yang ingin diiklankan.';
-    if (!form.harga_jual || Number(form.harga_jual) <= 0)
-      errs.harga_jual = 'Harga jual harus lebih dari Rp 0.';
-    if (!form.hpp || Number(form.hpp) <= 0)
-      errs.hpp = 'HPP / Modal pokok wajib diisi.';
-    if (Number(form.hpp) >= Number(form.harga_jual))
-      errs.hpp = 'HPP tidak boleh melebihi atau sama dengan Harga Jual.';
-    if (!form.budget_harian || Number(form.budget_harian) < 10000)
-      errs.budget_harian = 'Budget iklan minimal Rp 10.000 per hari.';
-    return errs;
-  };
-
-  const handleFormPreSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setFormErrors(errs);
+    const newErrors = {};
+
+    if (!productName.trim()) {
+      newErrors.product_name = 'Nama produk / jasa wajib diisi.';
+    }
+    if (!hargaJual || hargaNum <= 0) {
+      newErrors.harga_jual = 'Harga jual wajib diisi dan lebih dari 0.';
+    }
+    if (!hpp || hppNum <= 0) {
+      newErrors.hpp = 'Modal / HPP wajib diisi.';
+    } else if (hppNum >= hargaNum) {
+      newErrors.hpp = 'Modal (HPP) tidak boleh lebih besar atau sama dengan harga jual.';
+    }
+    if (!budgetHarian || budgetHarian < 20000) {
+      newErrors.budget_harian = 'Minimal budget iklan harian adalah Rp 20.000.';
+    }
+    if (!destinationValue.trim()) {
+      newErrors.destination_value = destinationType === 'whatsapp' ? 'Nomor WhatsApp admin wajib diisi.' : 'Link website / marketplace wajib diisi.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    setFormErrors({});
 
-    // If margin is vetoed locally, show warning immediately
-    if (marginData.marginPercent < 20) {
-      setIsVetoed(true);
-      setVetoAdvice(
-        `Margin kotor produk hanya ${marginData.marginPercent.toFixed(1)}% (di bawah batas aman 20%). Sub-Agent 2 memblokir iklan untuk melindungi anggaran UMKM Anda.`
-      );
-      setIsSubmitting(true);
-      return;
-    }
+    setErrors({});
 
-    // Open simulated payment confirmation modal
-    setShowPaymentModal(true);
-  };
-
-  const handleConfirmSimulatedPayment = () => {
-    setShowPaymentModal(false);
-    
-    // Create immediate campaign record and navigate straight to the workspace
     const newId = Date.now();
     const initialCampaign = {
       id: newId,
-      product_name: form.product_name,
-      platform: form.platform || 'TikTok',
-      budget: Number(form.budget_harian),
-      harga_jual: Number(form.harga_jual),
-      hpp: Number(form.hpp),
-      kategori: form.kategori || 'Fisik',
-      destination_type: form.destination_type,
-      destination_value: form.destination_value,
+      product_name: productName.trim(),
+      platform: 'TikTok',
+      budget: Number(budgetHarian),
+      harga_jual: hargaNum,
+      hpp: hppNum,
+      kategori: kategori,
+      destination_type: destinationType,
+      destination_value: destinationValue.trim(),
       status: 'Running',
       created_at: new Date().toISOString(),
     };
@@ -275,12 +104,12 @@ export default function NewCampaign() {
       state: {
         campaign: initialCampaign,
         campaignInput: {
-          product_name: form.product_name,
-          harga_jual: Number(form.harga_jual),
-          hpp: Number(form.hpp),
-          budget_harian: Number(form.budget_harian),
-          kategori: form.kategori || 'Fisik',
-          platform: form.platform || 'TikTok',
+          product_name: productName.trim(),
+          harga_jual: hargaNum,
+          hpp: hppNum,
+          budget_harian: Number(budgetHarian),
+          kategori: kategori,
+          platform: 'TikTok',
         },
         isLiveGenerating: true,
       },
@@ -292,400 +121,224 @@ export default function NewCampaign() {
       <Navbar />
 
       <PageContainer
-        badge="AI Autopilot Ads • Universal Discovery"
-        title="Buat Strategi Kampanye Iklan Baru"
-        description="Ceritakan produk fisik atau layanan jasa usaha Anda secara bebas. AI akan membedah pasar, mengekstrak parameter, dan menyusun strategi iklan 5 tahap secara otonom."
+        badge="Formulir Kampanye Baru"
+        title="Buat Strategi Iklan AI"
+        description="Masukkan informasi produk usaha Anda. 5 Sub-Agent AI akan membedah pasar secara empiris dan menyusun strategi siap pakai."
         backUrl="/dashboard"
         backLabel="Kembali ke Dashboard"
-        maxWidth="max-w-5xl"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Input Column */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            <Card hasRedBar className="p-6 sm:p-8">
-              <form onSubmit={handleFormPreSubmit} className="flex flex-col gap-5">
-                {/* 1. Quick Inspiration Presets */}
-                <div>
-                  <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">
-                    💡 Contoh Cepat Siap Pakai (Klik untuk Coba):
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: '☕ Jasa Foto Produk Kopi', text: 'Jasa Foto Produk Kopi di Jakarta. Ada Paket Foto Menu Rp 300.000 dan Paket Video Reels Rp 750.000. Hubungi WA 081289123456.' },
-                      { label: '🐱 Makanan Kucing Basah Pouch', text: 'Makanan Kucing Basah Pouch 85g rasa Salmon, harga jual Rp 20.000, modal HPP Rp 8.000. Hubungi WA 081289123456.' },
-                      { label: '👕 Kaos Oversize Combed', text: 'Kaos Oversize Pria Cotton Combed 24s, harga Rp 85.000, modal Rp 38.000. Toko Shopee: shopee.co.id/kaosdistro' },
-                      { label: '🌶️ Sambal Cumi Asin 150g', text: 'Sambal Cumi Asin Gurih 150g pedas segar alami, harga Rp 35.000, modal Rp 15.000. WhatsApp 081289123456.' },
-                      { label: '🚗 Jasa Cuci Mobil & Salon', text: 'Jasa Cuci Mobil & Salon Detailing panggilan. Paket Cuci Rp 65.000 dan Paket Coating Rp 450.000. Hubungi WA 081289123456.' }
-                    ].map((p, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleApplyPreset(p.text)}
-                        className="px-3 py-1.5 bg-neutral-900 hover:bg-rose-950/40 text-neutral-300 hover:text-white border border-neutral-800 hover:border-rose-500/50 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-sm"
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+        <div className="max-w-3xl mx-auto w-full">
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-neutral-950/90 border border-neutral-800/90 shadow-2xl backdrop-blur-2xl flex flex-col gap-7">
+            
+            {/* 1. NAMA PRODUK */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-rose-500" />
+                1. Nama Produk atau Layanan Usaha:
+              </label>
+              <input
+                type="text"
+                placeholder="Contoh: Jasa Cuci Sepatu di Yogyakarta / Sambal Cumi Asin 150g"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                className={cn(
+                  'w-full bg-neutral-900 text-white text-sm rounded-2xl px-4 py-3.5 border focus:outline-none transition-colors',
+                  errors.product_name ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
+                )}
+              />
+              {errors.product_name && (
+                <span className="text-[11px] text-red-400 flex items-center gap-1 mt-0.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  {errors.product_name}
+                </span>
+              )}
+            </div>
 
-                {/* 2. Universal Magic Prompt Box */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="prompt_input" className="text-sm font-bold text-white flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-rose-500" />
-                      Ceritakan Produk / Jasa / Usaha Anda:
-                    </label>
-                    <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">
-                      LIVE AI AUTO-EXTRACT
-                    </span>
-                  </div>
+            {/* 2. KATEGORI USAHA */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-rose-500" />
+                2. Kategori Produk:
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: 'Fisik', label: '📦 Produk Fisik / F&B' },
+                  { id: 'Jasa', label: '🛠️ Jasa / Layanan' },
+                  { id: 'Digital', label: '💻 Digital / Edukasi' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setKategori(item.id)}
+                    className={cn(
+                      'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer text-center',
+                      kategori === item.id
+                        ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
+                        : 'bg-neutral-900/80 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700'
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <textarea
-                    id="prompt_input"
-                    rows={4}
-                    placeholder="Contoh: Jasa Foto Produk Kopi di Jakarta. Ada Paket Foto Menu Rp 300.000 dan Paket Video Reels Rp 750.000. Hubungi WA 081289123456..."
-                    value={promptText}
-                    onChange={handlePromptChange}
-                    className="w-full p-4 rounded-2xl bg-neutral-950 border border-neutral-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 text-white text-sm leading-relaxed placeholder:text-neutral-500 outline-none transition-all shadow-inner resize-none font-sans"
+            {/* 3. HARGA JUAL & MODAL (HPP) */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-rose-500" />
+                3. Harga Jual & Modal Pokok (HPP):
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] text-neutral-400 font-medium">Harga Jual ke Pembeli (Rp):</span>
+                  <input
+                    type="number"
+                    placeholder="Contoh: 35000"
+                    value={hargaJual}
+                    onChange={(e) => setHargaJual(e.target.value)}
+                    className={cn(
+                      'w-full bg-neutral-900 text-white font-mono text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors',
+                      errors.harga_jual ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
+                    )}
                   />
-                  {formErrors.product_name && (
-                    <span className="text-xs text-rose-500 mt-1 block font-medium">{formErrors.product_name}</span>
-                  )}
-                  <span className="text-[11px] text-neutral-400 mt-1.5 block leading-relaxed">
-                    💡 <em>Ketik bebas apa saja: nama usaha, banyak paket harga, HPP, atau kontak WhatsApp. AI otomatis membedah parameternya secara real-time di bawah.</em>
-                  </span>
-                </div>
-
-                {/* 3. Live AI Parsed Brief Preview Card */}
-                <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800 flex flex-col gap-3.5 shadow-lg">
-                  <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
-                    <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2 font-mono">
-                      <Bot className="w-4 h-4 text-rose-500" />
-                      HASIL EKSTRAKSI PARAMETER AI (LIVE)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsManualEdit(!isManualEdit)}
-                      className="text-xs text-neutral-400 hover:text-white font-medium flex items-center gap-1 cursor-pointer"
-                    >
-                      {isManualEdit ? 'Tutup Penyesuaian ✕' : '✏️ Sesuaikan Nilai Manual'}
-                    </button>
-                  </div>
-
-                  {/* Extracted Entity Tags */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        🏷️ Usaha / Produk:
-                      </span>
-                      <strong className="text-xs text-white block mt-0.5 truncate">
-                        {form.product_name || 'Menunggu input...'}
-                      </strong>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        💰 Harga Jual / Paket:
-                      </span>
-                      <strong className="text-xs text-emerald-400 font-mono block mt-0.5">
-                        {formatRp(form.harga_jual)}
-                      </strong>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        📉 Estimasi Modal (HPP):
-                      </span>
-                      <strong className="text-xs text-neutral-300 font-mono block mt-0.5">
-                        {formatRp(form.hpp)} ({marginData.marginPercent.toFixed(0)}% Margin)
-                      </strong>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        📞 Tujuan Kontak:
-                      </span>
-                      <strong className="text-xs text-white block mt-0.5 truncate">
-                        {form.destination_type === 'whatsapp' ? `WA: ${form.destination_value}` : form.destination_value}
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Multi-Package Badges if multiple packages detected */}
-                  {form.detected_packages && form.detected_packages.length > 1 && (
-                    <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/30">
-                      <span className="text-[11px] font-bold text-rose-300 block mb-1.5">
-                        📦 Terdeteksi {form.detected_packages.length} Struktur Paket Harga:
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {form.detected_packages.map((pkg, idx) => (
-                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 font-mono">
-                            {pkg.name}: <strong>{formatRp(pkg.price)}</strong>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Manual Overrides Accordion (Hidden by default for Zero Friction) */}
-                  {isManualEdit && (
-                    <div className="pt-3 border-t border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in">
-                      <Input
-                        label="Nama Usaha / Produk"
-                        id="product_name_override"
-                        value={form.product_name}
-                        onChange={(e) => setForm({ ...form, product_name: e.target.value })}
-                      />
-                      <Input
-                        label="Harga Jual (Rp)"
-                        id="harga_jual_override"
-                        type="number"
-                        value={form.harga_jual}
-                        onChange={(e) => setForm({ ...form, harga_jual: e.target.value })}
-                      />
-                      <Input
-                        label="Modal HPP (Rp)"
-                        id="hpp_override"
-                        type="number"
-                        value={form.hpp}
-                        onChange={(e) => setForm({ ...form, hpp: e.target.value })}
-                      />
-                      <Input
-                        label="Kontak / Link WA / Web"
-                        id="destination_override"
-                        value={form.destination_value}
-                        onChange={(e) => setForm({ ...form, destination_value: e.target.value })}
-                      />
-                    </div>
+                  {errors.harga_jual && (
+                    <span className="text-[11px] text-red-400">{errors.harga_jual}</span>
                   )}
                 </div>
 
-                {/* 4. Budget Allocation Package Selector */}
-                <div className="pt-3 border-t border-neutral-800">
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="text-xs font-bold text-neutral-300">
-                      Pilih Paket Alokasi Saldo Iklan (Simulasi Deposit)
-                    </label>
-                    <span className="text-[10px] font-mono text-neutral-400">100% Prabayar Aman</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    {[
-                      { id: '100000', name: 'Uji Coba', amount: 100000, days: '2-3 Hari', desc: 'Validasi pasar termurah' },
-                      { id: '300000', name: 'Growth', amount: 300000, days: '5-7 Hari', desc: 'Optimal jaring pembeli' },
-                      { id: '500000', name: 'Scale-Up', amount: 500000, days: '10-14 Hari', desc: 'Skala omzet maksimal' },
-                    ].map((pkg) => {
-                      const isSelected = form.budget_harian === pkg.id;
-                      return (
-                        <div
-                          key={pkg.id}
-                          onClick={() => setForm({ ...form, budget_harian: pkg.id, selected_package: pkg.id })}
-                          className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-                            isSelected
-                              ? 'bg-rose-950/30 border-rose-500/80 ring-1 ring-rose-500/50 text-white'
-                              : 'bg-neutral-900/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
-                          }`}
-                        >
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-[10px] font-black uppercase tracking-wider">{pkg.name}</span>
-                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-950 text-neutral-400">{pkg.days}</span>
-                            </div>
-                            <p className="text-base font-black text-white font-mono">{formatRp(pkg.amount)}</p>
-                          </div>
-                          <span className="text-[10px] text-neutral-400 mt-2 block">{pkg.desc}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Submit Trigger Button */}
-                <Button
-                  type="submit"
-                  variant="brand"
-                  size="lg"
-                  className="w-full mt-2 font-black py-4 shadow-xl shadow-rose-950/50 text-sm flex items-center justify-center gap-2"
-                >
-                  <span>🚀 Lanjut ke Konfirmasi Saldo & Eksekusi AI</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </form>
-            </Card>
-          </div>
-
-          {/* Unit Economics Live Preview Column */}
-          <div className="lg:col-span-5 flex flex-col gap-5">
-            <Card className="p-6 bg-neutral-950/80 border-rose-500/20">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black uppercase text-white tracking-wide">
-                    Kalkulator Keuntungan Produk (Margin Profit)
-                  </h3>
-                  <p className="text-[11px] text-neutral-400">
-                    Simulasi laba per barang agar iklan aman dari risiko rugi (anti-boncos)
-                  </p>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] text-neutral-400 font-medium">Modal / HPP per Produk (Rp):</span>
+                  <input
+                    type="number"
+                    placeholder="Contoh: 15000"
+                    value={hpp}
+                    onChange={(e) => setHpp(e.target.value)}
+                    className={cn(
+                      'w-full bg-neutral-900 text-white font-mono text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors',
+                      errors.hpp ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
+                    )}
+                  />
+                  {errors.hpp && (
+                    <span className="text-[11px] text-red-400">{errors.hpp}</span>
+                  )}
                 </div>
               </div>
 
-              {hasValues ? (
-                <div className="flex flex-col gap-4">
-                  <div className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-neutral-400 uppercase">
-                        Persentase Keuntungan (Margin)
-                      </span>
-                      <span
-                        className="text-xl font-black font-mono"
-                        style={{ color: marginData.color }}
-                      >
-                        {marginData.marginPercent.toFixed(1)}%
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs text-neutral-400 mt-2 pt-2 border-t border-neutral-800/80">
-                      <span>Laba Bersih Per Barang Terjual:</span>
-                      <span className="font-bold text-emerald-400 font-mono text-sm">
-                        {formatRp(marginData.marginValue)}
-                      </span>
-                    </div>
-
-                    <p className="text-[10px] text-neutral-500 mt-2">
-                      Dihitung dari: Harga Jual ({formatRp(form.harga_jual || 0)}) dikurangi Modal/HPP ({formatRp(form.hpp || 0)}).
-                    </p>
-                  </div>
-
-                  {/* Status Box */}
-                  <div
-                    className="p-3.5 rounded-xl border flex items-start gap-2.5 text-xs font-medium"
-                    style={{
-                      backgroundColor: `${marginData.color}15`,
-                      borderColor: `${marginData.color}40`,
-                      color: marginData.color,
-                    }}
-                  >
-                    <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="block font-black uppercase mb-0.5">
-                        {marginData.label}
-                      </strong>
-                      <span className="leading-relaxed">
-                        {marginData.status === 'VETO'
-                          ? 'Perhatian: Keuntungan produk Anda di bawah 20%, terlalu tipis untuk biaya iklan. Sub-Agent AI akan memblokir eksekusi agar modal Anda tidak habis sia-sia.'
-                          : marginData.status === 'WARNING'
-                          ? 'Keuntungan produk cukup, namun perlu pengawasan ketat pada biaya per klik (CPA).'
-                          : 'Keuntungan sangat sehat (>30%)! Produk ini sangat ideal dan aman untuk diiklankan secara agresif.'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-neutral-500 text-xs font-medium">
-                  Tuliskan harga jual dan modal produk Anda di kotak prompt untuk melihat simulasi keuntungan secara instan.
+              {/* Real-time Margin Info Card */}
+              {hargaNum > 0 && hppNum > 0 && hppNum < hargaNum && (
+                <div className="mt-2 p-3.5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-between text-xs font-mono">
+                  <span className="text-neutral-400">
+                    Laba Bersih: <strong className="text-white font-bold">{formatRp(marginVal)}</strong> per transaksi
+                  </span>
+                  <span className={cn('px-2.5 py-0.5 rounded-lg font-black', isHealthyMargin ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-rose-950 text-rose-400 border border-rose-500/40')}>
+                    Margin: {marginPct}% {isHealthyMargin ? '✅ SEHAT' : '⚠️ TIPIS'}
+                  </span>
                 </div>
               )}
-            </Card>
-
-            {/* Ad Spend & Fee Breakdown Card */}
-            <Card className="p-6 bg-neutral-950/60 border-neutral-900 text-xs text-neutral-300">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white mb-3 flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-rose-500" />
-                Rincian Pembagian Saldo Deposit Anda
-              </h4>
-
-              <div className="flex flex-col gap-2 p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-800 mb-3">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-400">Total Saldo yang Anda Depositkan:</span>
-                  <span className="font-bold text-white font-mono">{formatRp(budgetNum)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs pt-2 border-t border-neutral-800/80">
-                  <span className="text-neutral-300 font-medium">1. Saldo Tayang Iklan Murni (90%):</span>
-                  <span className="font-bold text-emerald-400 font-mono">{formatRp(adSpendPure)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-300 font-medium">2. Biaya Layanan 5 Agen AI (10%):</span>
-                  <span className="font-bold text-rose-400 font-mono">{formatRp(aiFee)}</span>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-neutral-400 leading-relaxed">
-                💡 <strong>Penjelasan Sederhana:</strong> Dari saldo Anda, <strong>90%</strong> langsung dipakai membeli tayangan iklan di TikTok/Instagram untuk mendatangkan pembeli. <strong>10%</strong> sisanya adalah biaya operasional sistem AI untuk meriset pasar, menulis naskah video, dan menjaga iklan dari risiko rugi 24/7.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </PageContainer>
-
-      {/* SIMULATED PAYMENT CONFIRMATION MODAL */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-neutral-950 border border-rose-500/40 p-6 sm:p-7 shadow-2xl flex flex-col gap-5">
-            <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center">
-                  <QrCode className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-white uppercase">Simulasi Pembayaran Saldo</h3>
-                  <p className="text-[10px] text-neutral-400">Mode Demo Kompetisi (Tanpa Uang Asli)</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowPaymentModal(false)}
-                className="text-neutral-500 hover:text-white p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800 flex flex-col gap-2.5 text-xs">
-              <div className="flex justify-between items-center text-neutral-300">
-                <span>Produk:</span>
-                <strong className="text-white truncate max-w-[200px]">{form.product_name}</strong>
-              </div>
-              <div className="flex justify-between items-center text-neutral-300">
-                <span>Tujuan Closing:</span>
-                <strong className="text-emerald-400 uppercase font-mono">
-                  {form.destination_type === 'whatsapp' ? 'WhatsApp Admin' : 'Marketplace'}
-                </strong>
-              </div>
-              <div className="flex justify-between items-center text-neutral-300 pt-2 border-t border-neutral-800">
-                <span>Saldo Iklan (90%):</span>
-                <span className="font-mono text-white font-bold">{formatRp(adSpendPure)}</span>
-              </div>
-              <div className="flex justify-between items-center text-neutral-300">
-                <span>Fee Optimasi AI (10%):</span>
-                <span className="font-mono text-rose-400 font-bold">{formatRp(aiFee)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm font-black text-white pt-2 border-t border-neutral-800">
-                <span>Total Konfirmasi:</span>
-                <span className="text-rose-400 font-mono text-base">{formatRp(budgetNum)}</span>
+            {/* 4. BUDGET IKLAN HARIAN */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-rose-500" />
+                4. Rencana Budget Iklan Harian:
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 50000, label: 'Rp 50.000 / hari', note: 'Uji Coba Awal' },
+                  { value: 100000, label: 'Rp 100.000 / hari', note: 'Standar Optimal' },
+                  { value: 200000, label: 'Rp 200.000 / hari', note: 'Skala Cepat' },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setBudgetHarian(item.value)}
+                    className={cn(
+                      'p-3.5 rounded-2xl border flex flex-col items-center gap-1 transition-all cursor-pointer',
+                      budgetHarian === item.value
+                        ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
+                        : 'bg-neutral-900/80 text-neutral-300 border-neutral-800 hover:text-white hover:border-neutral-700'
+                    )}
+                  >
+                    <span className="font-mono font-black text-xs sm:text-sm">{formatRp(item.value)}</span>
+                    <span className="text-[10px] text-neutral-400 font-normal">{item.note}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-emerald-300 text-[11px] leading-relaxed flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <span>
-                Klik konfirmasi untuk mensimulasikan pembayaran instan QRIS. 5 Sub-Agent AI akan langsung memproses analisis real-time.
-              </span>
+            {/* 5. TUJUAN KONTAK / CLOSING */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                <Target className="w-4 h-4 text-rose-500" />
+                5. Tujuan Pembeli Menghubungi / Membeli:
+              </label>
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDestinationType('whatsapp');
+                    setDestinationValue('');
+                  }}
+                  className={cn(
+                    'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2',
+                    destinationType === 'whatsapp'
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-950/50'
+                      : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                  )}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp Admin
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDestinationType('website');
+                    setDestinationValue('');
+                  }}
+                  className={cn(
+                    'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2',
+                    destinationType === 'website'
+                      ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
+                      : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                  )}
+                >
+                  <Globe className="w-4 h-4" />
+                  Website / Marketplace
+                </button>
+              </div>
+
+              <input
+                type="text"
+                placeholder={destinationType === 'whatsapp' ? 'Contoh: 081234567890 (Nomor WA Admin)' : 'Contoh: https://shopee.co.id/tokosaya'}
+                value={destinationValue}
+                onChange={(e) => setDestinationValue(e.target.value)}
+                className={cn(
+                  'w-full bg-neutral-900 text-white text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors font-mono',
+                  errors.destination_value ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
+                )}
+              />
+              {errors.destination_value && (
+                <span className="text-[11px] text-red-400">{errors.destination_value}</span>
+              )}
             </div>
 
+            {/* SUBMIT BUTTON */}
             <Button
+              type="submit"
               variant="primary"
               size="lg"
               isFullWidth
-              onClick={handleConfirmSimulatedPayment}
-              className="text-xs font-black shadow-lg shadow-rose-950/60"
+              rightIcon={<ArrowRight className="w-4 h-4 stroke-[3]" />}
+              className="mt-3 text-sm font-black shadow-xl shadow-rose-950/70 py-4"
             >
-              Konfirmasi & Buka Canvas 5 Sub-Agent AI →
+              Jalankan 5 Sub-Agent AI Sekarang →
             </Button>
-          </div>
+          </form>
         </div>
-      )}
+      </PageContainer>
 
       <Footer />
     </div>
