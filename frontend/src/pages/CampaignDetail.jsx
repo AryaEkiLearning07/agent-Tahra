@@ -274,56 +274,56 @@ export default function CampaignDetail() {
       };
     }
 
-    // Default: Kuliner / FMCG
+    // Default Universal Semantic Generator for ANY Arbitrary Product or Service:
     return {
-      product_class: 'FMCG Kuliner Pedas',
-      category_name: 'FMCG Kuliner Pedas Siap Saji',
-      usp: 'Potongan cumi/lauk melimpah dengan minyak cabai segar alami tanpa bahan pengawet kimia.',
-      competitor_proxy: 'Sambal Bu Rudy / Sambal Kemasan Supermarket',
-      target_demography: 'Pria & Wanita 18-35 tahun, Pengguna Aktif Media Sosial',
-      audience_psychography: 'Pecinta kuliner pedas praktis yang suka makan nasi hangat di kos/rumah.',
-      demand_views: '840.5M+ Views (#SambalViral #KulinerPedas)',
-      search_volume: '49.200 / bln',
+      product_class: price < 50000 ? 'Ekonomis / Retail' : price > 250000 ? 'Premium Eksklusif' : 'Menengah Unggulan',
+      category_name: `Kategori ${pName}`,
+      usp: `Kualitas teruji dengan standar mutu tinggi, performa handal, dan harga jujur langsung dari penyedia.`,
+      competitor_proxy: 'Brand Pasaran Konvensional / Produk Tiruan Tanpa Garansi',
+      target_demography: 'Pria & Wanita Usia 20-45 tahun di Seluruh Indonesia, Pengguna Digital Aktif',
+      audience_psychography: 'Konsumen cerdas yang mencari solusi praktis, aman, terpercaya, dan bernilai sepadan dengan biaya yang dikeluarkan.',
+      demand_views: '520.0M+ Views',
+      search_volume: '36.500 / bln',
       sentiment_pos: [
-        '74% menyukai minyak cabai wangi yang melimpah untuk disiram di nasi panas.',
-        '68% mencari tekstur cumi yang kenyal gurih dan tidak berbau amis.',
-        '52% repeat order karena kepraktisan lauk tanpa perlu dimasak.'
+        `84% pembeli sangat puas dengan keandalan dan kepraktisan ${pName}.`,
+        '76% mencari produk/layanan yang memberikan manfaat nyata sebanding dengan harganya.',
+        '68% repeat order karena pelayanan ramah dan jaminan kualitas terpercaya.'
       ],
       sentiment_neg: [
-        '62% kecewa karena cumi di sambal pasaran sangat sedikit (cuma 2-3 potong kecil).',
-        '26% mengeluhkan minyak beku atau menggumpal saat sampai.',
-        '19% mengalami kemasan bocor saat pengiriman ekspedisi.'
+        '56% kecewa dengan alternatif pasaran yang cepat rusak dan minim dukungan layanan purna jual.',
+        '34% merasa informasi harga kompetitor tidak transparan dengan banyak biaya tambahan.',
+        '20% pengiriman pasaran sering lambat dan tidak aman.'
       ],
       competitor_matrix: [
-        { brand: `⭐ ${pName} (Produk Anda)`, price: `Rp ${Number(price).toLocaleString('id-ID')}`, gram: '150 gram', diff: 'Potongan cumi jumbo melimpah, minyak cabai segar alami tanpa pengawet kimia.' },
-        { brand: 'Sambal Bu Rudy', price: 'Rp 38.000', gram: '130 gram', diff: 'Brand legendaris, namun porsi cumi sedikit & harga lebih premium.' },
-        { brand: 'Sambal Sachet Supermarket', price: 'Rp 18.000', gram: '100 gram', diff: 'Murah, tapi rasa cenderung kimiawi/artifisial dan tanpa cumi asli.' }
+        { brand: `⭐ ${pName} (Solusi Anda)`, price: `Rp ${Number(price).toLocaleString('id-ID')}`, gram: 'Standar Kualitas', diff: 'Kualitas teruji, harga jujur bersahabat, jaminan kepuasan konsumen.' },
+        { brand: 'Brand Konvensional Terkenal', price: `Rp ${Math.round(price * 1.7).toLocaleString('id-ID')}`, gram: 'Standar', diff: 'Brand terkenal, namun harga 70% lebih tinggi untuk fungsi serupa.' },
+        { brand: 'Produk Tiruan Murahan', price: `Rp ${Math.round(price * 0.5).toLocaleString('id-ID')}`, gram: 'Kualitas Rendah', diff: 'Harga sangat murah, namun material ringkih dan tidak ada jaminan mutu.' }
       ],
-      persona_1: { name: 'Riko (24th) - Anak Kos & Pekerja Sibuk', age: '19 - 27th', desc: 'Sering lembur atau kuliah, malas memasak yang ribet. Cukup masak nasi di rice cooker dan butuh 1 lauk pedas gurih yang langsung bikin nafsu makan naik.', trigger: 'Cuma butuh nasi hangat + sambal TAHRA, makan malam mewah hemat selesai!' },
-      persona_2: { name: 'Diana (32th) - Ibu Rumah Tangga Modern', age: '28 - 40th', desc: 'Mencari pelengkap makan keluarga yang higienis. Mengutamakan bahan alami tanpa pengawet berbahaya untuk suami dan anak-anak.', trigger: 'Stok sambal higienis di kulkas yang tahan lama dan disukai seisi rumah.' },
+      persona_1: { name: 'Budi (29th) - Konsumen Cerdas & Praktis', age: '22 - 40 tahun', desc: `Mencari ${pName} yang handal, awet, dan memberikan nilai guna optimal bagi kebutuhan hariannya.`, trigger: `Solusi ${pName} tepat guna yang menghemat waktu dan biaya.` },
+      persona_2: { name: 'Siti (35th) - Pengelola Usaha / Rumah Tangga', age: '28 - 48 tahun', desc: `Mengutamakan ${pName} berkualitas aman dan terpercaya yang mempermudah urusan keluarga atau bisnis.`, trigger: 'Kualitas terjamin dengan harga bersahabat langsung dari penyedia.' },
       fase1: {
-        headline: 'Pedasnya Nendang, Bikin Nasi Hangat Langsung Ludes!',
-        primary_text: `Sering kecewa sama sambal botolan yang cuma asin doang? ${pName} diracik dari 100% cabai segar pilihan dan potongan cumi melimpah.`,
-        cta: 'Cek Rasa Autentiknya Sekarang 🔥',
-        video_hook: 'Tunjukkan close-up sendok menyendok sambal cumi melimpah di atas nasi panas mengepul.',
-        body_3_10s: 'Tekstur cumi kenyal gurih dan cabai merah menyala tanpa minyak beku.',
-        cta_10_15s: 'Klik link di bio/keranjang kuning sekarang untuk klaim voucher gratis ongkir!'
+        headline: `Solusi Praktis & Berkualitas Terbaik untuk Kebutuhan ${pName}!`,
+        primary_text: `Ingin hasil maksimal tanpa repot? ${pName} hadir dengan kualitas teruji yang siap memenuhi kebutuhan Anda sehari-hari secara praktis dan memuaskan.`,
+        cta: `Cek Detail & Penawaran ${pName} Sekarang 🔥`,
+        video_hook: `Tunjukkan masalah sehari-hari yang sering dialami konsumen sebelum menggunakan ${pName}, dan bagaimana ${pName} menyelesaikannya secara instan!`,
+        body_3_10s: `Kualitas teruji dengan standar mutu pilihan yang memberikan rasa aman dan kenyamanan maksimal.`,
+        cta_10_15s: 'Klik link sekarang untuk klaim penawaran promo khusus hari ini!'
       },
       fase2: {
-        headline: 'Masih Penasaran Sama Pedas Gurihnya? Diskon 20% Hari Ini!',
-        primary_text: `Khusus untuk kamu yang kemarin lihat video kami! Dapatkan promo gratis ongkir + potongan 20% khusus 50 pembeli pertama ${pName} hari ini.`,
-        cta: 'Klaim Promo Diskon 20% Sekarang ⚡',
-        video_hook: 'Tunjukkan testimoni pembeli yang lahap makan nasi + potongan cumi jumbo.',
-        body_3_10s: 'Ribuan pelanggan sudah ketagihan dengan rasa gurih pedas alaminya.',
-        cta_10_15s: 'Klaim diskon sekarang sebelum kuota promo habis!'
+        headline: `Dapatkan Promo Diskon Spesial 20% Khusus Pemesanan ${pName} Hari Ini!`,
+        primary_text: `Khusus kamu yang kemarin sudah melihat penawaran kami! Dapatkan potongan 20% + garansi kepuasan untuk pemesanan ${pName} hari ini.`,
+        cta: 'Klaim Diskon Promo 20% Sekarang ⚡',
+        video_hook: `Tunjukkan kepuasan pelanggan yang sudah merasakan kemudahan dan manfaat nyata dari ${pName}!`,
+        body_3_10s: `Terbukti membantu ratusan konsumen menyelesaikan kebutuhannya dengan cepat dan memuaskan.`,
+        cta_10_15s: 'Pesan sekarang sebelum kuota promo terbatas habis!'
       },
       fase3: {
-        headline: 'Beli 2 Gratis 1! Stok Sambal Favorit Keluarga Hemat 40%',
-        primary_text: `Sudah coba dan ketagihan? Ambil paket bundling 3 botol varian Cumi + Bawang + Terasi dengan harga grosir hemat ongkir.`,
+        headline: `Paket Hemat Bundling! Dapatkan Harga Lebih Murah + Bebas Ongkir`,
+        primary_text: `Sudah cocok dan puas? Beli paket bundling ${pName} untuk persediaan lebih lama dengan harga grosir hemat hingga 35%.`,
         cta: 'Pesan Paket Bundling Hemat 📦',
-        video_hook: 'Tunjukkan unboxing 3 botol sambal dengan packaging aman anti-bocor.',
-        body_3_10s: 'Stok sambal aman sebulan untuk seluruh keluarga di rumah.',
-        cta_10_15s: 'Pesan paket bundling hemat hari ini!'
+        video_hook: `Tunjukkan unboxing paket lengkap ${pName} dengan kemasan aman dan rapi.`,
+        body_3_10s: 'Pilihan hemat dan cerdas untuk pemakaian jangka panjang.',
+        cta_10_15s: 'Pesan paket hemat hari ini!'
       }
     };
   };
