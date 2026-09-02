@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(150) NOT NULL,
     `email` VARCHAR(150) NOT NULL UNIQUE,
+    `password_hash` VARCHAR(255) NOT NULL COMMENT 'Bcrypt / Argon2 hashed password',
     `business_name` VARCHAR(150) NOT NULL,
     `whatsapp_number` VARCHAR(30) DEFAULT NULL,
     `role` ENUM('umkm_owner', 'agency_admin', 'superadmin') DEFAULT 'umkm_owner',
@@ -94,9 +95,9 @@ CREATE TABLE IF NOT EXISTS `ai_memory_logs` (
 -- SEED DATA CONTOH (Untuk Demo & Pengujian Awal)
 -- =============================================================
 
-INSERT INTO `users` (`id`, `name`, `email`, `business_name`, `whatsapp_number`, `role`)
+INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `business_name`, `whatsapp_number`, `role`)
 VALUES 
-(1, 'Ahmad Rasyid', 'ahmad@tahranusantara.com', 'Sambal TAHRA Nusantara', '081289123456', 'umkm_owner')
+(1, 'Ahmad Rasyid', 'ahmad@tahranusantara.com', '$2b$12$e8Y7Z1K8W9N0J1M2L3K4E5A6B7C8D9E0F1G2H3I4J5K6L7M8N9O0P', 'Sambal TAHRA Nusantara', '081289123456', 'umkm_owner')
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);
 
 INSERT INTO `ad_wallets` (`user_id`, `saldo_aktif`, `total_ad_spend`, `total_ai_fee`, `last_topup_amount`, `last_topup_at`)
