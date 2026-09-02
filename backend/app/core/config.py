@@ -12,9 +12,23 @@ class Settings(BaseSettings):
     # LLM Gateway Configuration
     LLM_BASE_URL: str = Field(default="https://api.groq.com/openai/v1", env="LLM_BASE_URL")
     LLM_API_KEY: str = Field(default="", env="LLM_API_KEY")
-    LLM_MODEL: str = Field(default="llama3-70b-8192", env="LLM_MODEL")
-    LLM_TIMEOUT: float = 30.0
+    GROQ_API_KEY: Optional[str] = Field(default=None, env="GROQ_API_KEY")
+    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    LLM_MODEL: str = Field(default="llama-3.3-70b-versatile", env="LLM_MODEL")
+    LLM_TIMEOUT: float = 60.0
     LLM_MAX_RETRIES: int = 3
+
+    @property
+    def active_api_key(self) -> str:
+        return (
+            os.getenv("LLM_API_KEY")
+            or os.getenv("GROQ_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+            or self.LLM_API_KEY
+            or self.GROQ_API_KEY
+            or self.OPENAI_API_KEY
+            or ""
+        )
     
     # Database Configuration (Defaults to local SQLite async, easily switchable to MySQL/Postgres in prod)
     DATABASE_URL: str = Field(

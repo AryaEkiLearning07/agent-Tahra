@@ -23,7 +23,7 @@ class LLMGateway:
     def client(self) -> AsyncOpenAI:
         if not self._client:
             self._client = AsyncOpenAI(
-                api_key=settings.LLM_API_KEY or "dummy_key",
+                api_key=settings.active_api_key,
                 base_url=settings.LLM_BASE_URL,
                 timeout=settings.LLM_TIMEOUT,
                 max_retries=settings.LLM_MAX_RETRIES,
