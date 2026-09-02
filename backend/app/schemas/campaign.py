@@ -17,44 +17,43 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- DEEP MULTI-DIMENSIONAL SUB-AGENT 1 SCHEMAS (RAG & MARKET INTELLIGENCE) ---
+# --- STRICT EMPIRICAL SUB-AGENT 1 SCHEMAS (ZERO-AMBIGUITY MARKET INTELLIGENCE) ---
 
-class CompetitorMatrixItem(BaseModel):
-    brand_name: str
-    price: str
-    grammage: str
-    pros_cons: str
+class CompetitorEmpiricalBenchmark(BaseModel):
+    benchmark_brand_or_category: str = Field(..., description="Pesaing riil di pasar Indonesia")
+    observed_customer_friction: str = Field(..., description="Kelemahan fisik/layanan kompetitor yang dikeluhkan konsumen")
+    price_point_gap: str = Field(..., description="Perbandingan harga riil produk vs kompetitor")
 
-class BuyerPersonaItem(BaseModel):
-    name: str
-    age_range: str
-    profile_description: str
-    purchase_trigger: str
-
-class VoiceOfCustomer(BaseModel):
-    sample_size: str = "1.200+ Agregasi Sentimen Publik Terbuka (Anonim)"
-    positive_triggers: List[str]
-    competitor_friction_points: List[str]
-
-class MarketDemandMetrics(BaseModel):
-    trending_views: str
-    monthly_search_volume: str
-    purchase_intent_score: str
+class EmpiricalBuyerPersona(BaseModel):
+    persona_title: str = Field(..., description="Nama, usia sempit, dan profesi spesifik")
+    trigger_moment: str = Field(..., description="Konteks waktu/situasi riil saat masalah dialami")
+    biggest_purchase_hesitation: str = Field(..., description="Keraguan terbesar sebelum transfer uang")
+    deciding_proof_factor: str = Field(..., description="Fakta/bukti konkret yang melenyapkan keraguan")
 
 # SUB-AGENT 1: Market & Product Researcher (The Explorer)
 class Agent1MarketResearchOutput(BaseModel):
     product_name: str
-    product_class: Literal["Murah", "Menengah", "Premium"]
-    target_demography: str
-    audience_psychography: str
-    usp: str
-    pain_points: List[str]
-    competitor_proxy: str
-    market_demand: Optional[MarketDemandMetrics] = None
-    voice_of_customer: Optional[VoiceOfCustomer] = None
-    competitor_matrix: Optional[List[CompetitorMatrixItem]] = None
-    buyer_personas: Optional[List[BuyerPersonaItem]] = None
-    data_foundation: str
+    purchase_behavior: Literal["IMPULSE_BUYING", "HIGH_INTENT_SEARCH", "CONSIDERATION"]
+    target_demography: str = Field(..., description="Mikro-segmentasi demografi (rentang usia sempit, profesi, lokasi)")
+    audience_psychography: str = Field(..., description="Konteks rutinitas harian & kebiasaan transaksi riil")
+    competitor_benchmark: CompetitorEmpiricalBenchmark
+    quantified_customer_pains: List[str] = Field(..., min_length=2, max_length=3, description="2-3 masalah terukur dengan kerugian nyata")
+    buyer_personas: List[EmpiricalBuyerPersona] = Field(..., min_length=2, max_length=2, description="2 persona pembeli empiris")
+    usp_statement: str = Field(..., description="1 kalimat janji konkret berbasis angka/fitur, bukan klaim kosong")
+    data_foundation: str = Field(..., description="Fakta pasar empiris yang mendasari analisis ini")
+
+    @property
+    def usp(self) -> str:
+        return self.usp_statement
+
+    @property
+    def competitor_proxy(self) -> str:
+        return self.competitor_benchmark.benchmark_brand_or_category
+
+    @property
+    def pain_points(self) -> List[str]:
+        return self.quantified_customer_pains
+
 
 # --- ELITE PERFORMANCE MARKETING ARCHITECTURE (SUB-AGENT 2) ---
 
