@@ -252,90 +252,39 @@ export default function NewCampaign() {
     setShowPaymentModal(true);
   };
 
-  const handleConfirmSimulatedPayment = async () => {
+  const handleConfirmSimulatedPayment = () => {
     setShowPaymentModal(false);
-    setIsSubmitting(true);
-    setIsVetoed(false);
-    setThoughtLogs([]);
-    setCurrentStageIndex(0);
-
-    const addLog = (log) => {
-      setThoughtLogs((prev) => [...prev, log]);
+    
+    // Create immediate campaign record and navigate straight to the workspace
+    const newId = Date.now();
+    const initialCampaign = {
+      id: newId,
+      product_name: form.product_name,
+      platform: form.platform || 'TikTok',
+      budget: Number(form.budget_harian),
+      harga_jual: Number(form.harga_jual),
+      hpp: Number(form.hpp),
+      kategori: form.kategori || 'Fisik',
+      destination_type: form.destination_type,
+      destination_value: form.destination_value,
+      status: 'Running',
+      created_at: new Date().toISOString(),
     };
 
-    try {
-      // Stage 1: Sub-Agent 1 (The Explorer)
-      setCurrentStageIndex(0);
-      addLog(`[Sub-Agent 1: The Explorer] Menganalisis Competitor Proxy untuk '${form.product_name}' di kategori ${form.kategori}...`);
-      await new Promise((r) => setTimeout(r, 650));
-      addLog(`[Sub-Agent 1: The Explorer] Mengidentifikasi 3 pain points audiens & merumuskan Unique Selling Proposition (USP)...`);
-      await new Promise((r) => setTimeout(r, 600));
-
-      // Stage 2: Sub-Agent 2 (The Planner)
-      setCurrentStageIndex(1);
-      addLog(`[Sub-Agent 2: The Planner] Menguji Unit Economics: Margin ${(marginData.marginPercent).toFixed(1)}% vs Threshold 20% (OK)...`);
-      addLog(`[Sub-Agent 2: The Planner] Memilih saluran '${form.platform}' (9:16) & batas plafon CPA max Rp ${(marginData.marginValue * 0.4).toLocaleString('id-ID')}...`);
-      await new Promise((r) => setTimeout(r, 650));
-
-      // Stage 3: Sub-Agent 3 (The Wordsmith)
-      setCurrentStageIndex(2);
-      addLog(`[Sub-Agent 3: The Wordsmith] Merangkai Naskah Video 15 Detik (Hook 0-3s, Body 3-10s, CTA 10-15s)...`);
-      addLog(`[Sub-Agent 3: The Wordsmith] Menulis caption persuasif menggunakan psikologi PAS Framework...`);
-      await new Promise((r) => setTimeout(r, 650));
-
-      // Stage 4: Sub-Agent 4 (The Creator / Vision Auditor)
-      setCurrentStageIndex(3);
-      if (form.photo_preview) {
-        addLog(`[Sub-Agent 4: Vision Auditor] Membedah foto asli produk: menganalisis kontras warna, pencahayaan, dan cognitive clutter...`);
-      } else {
-        addLog(`[Sub-Agent 4: The Creator] Merangkai prompt visual studio 8K dengan pencahayaan sinematik rasio 9:16...`);
-      }
-      await new Promise((r) => setTimeout(r, 700));
-
-      // Stage 5: Sub-Agent 5 (The QA & Deployer)
-      setCurrentStageIndex(4);
-      addLog(`[Sub-Agent 5: The QA & Deployer] Validasi silang: Tautan tujuan closing terhubung ke ${form.destination_type === 'whatsapp' ? 'WhatsApp Admin' : 'Marketplace'}...`);
-      addLog(`[Sub-Agent 5: The QA & Deployer] Meracik Campaign Blueprint Payload & simulasi matematis ROAS (CPM/CTR/CVR)...`);
-
-      // Invoke real backend API
-      const pipelineRes = await runAgentPipeline(form);
-      const resultData = pipelineRes.data;
-
-      addLog(`[Sub-Agent 5: The QA & Deployer] ✅ QA APPROVED: Blueprint kampanye siap dieksekusi.`);
-      await new Promise((r) => setTimeout(r, 500));
-
-      // Save Record
-      const campaignRecord = {
-        id: Date.now(),
-        product_name: form.product_name,
-        platform: form.platform,
-        target_audience:
-          resultData?.agent1_research?.target_demography ||
-          resultData?.strategy?.target_demography ||
-          'Target audiens teroptimasi AI',
-        budget: Number(form.budget_harian),
-        status: resultData?.status === 'VETO' ? 'Veto' : 'Running', // Simulated live running
-        roas: resultData?.roas_report?.roas_percentage
-          ? `${resultData.roas_report.roas_percentage}%`
-          : '240%',
-        created_at: new Date().toISOString(),
-        destination: {
-          type: form.destination_type,
-          value: form.destination_value,
+    navigate(`/campaign/${newId}`, {
+      state: {
+        campaign: initialCampaign,
+        campaignInput: {
+          product_name: form.product_name,
+          harga_jual: Number(form.harga_jual),
+          hpp: Number(form.hpp),
+          budget_harian: Number(form.budget_harian),
+          kategori: form.kategori || 'Fisik',
+          platform: form.platform || 'TikTok',
         },
-        result: resultData,
-      };
-
-      await saveCampaign(campaignRecord);
-      setIsSubmitting(false);
-
-      navigate(`/campaign/${campaignRecord.id}`, {
-        state: { campaign: campaignRecord },
-      });
-    } catch (err) {
-      console.error('Pipeline execution error:', err);
-      setIsSubmitting(false);
-    }
+        isLiveGenerating: true,
+      },
+    });
   };
 
   return (
@@ -732,25 +681,11 @@ export default function NewCampaign() {
               onClick={handleConfirmSimulatedPayment}
               className="text-xs font-black shadow-lg shadow-rose-950/60"
             >
-              Konfirmasi & Jalankan 5 Sub-Agent AI →
+              Konfirmasi & Buka Canvas 5 Sub-Agent AI →
             </Button>
           </div>
         </div>
       )}
-
-      {/* Live Ultra-Premium Multi-Agent Thinking Modal */}
-      <AgentThinkingModal
-        isOpen={isSubmitting}
-        currentStageIndex={currentStageIndex}
-        productName={form.product_name}
-        logs={thoughtLogs}
-        isVeto={isVetoed}
-        vetoReason={vetoAdvice}
-        onClose={() => {
-          setIsSubmitting(false);
-          setIsVetoed(false);
-        }}
-      />
 
       <Footer />
     </div>
