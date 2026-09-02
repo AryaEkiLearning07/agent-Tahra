@@ -17,7 +17,29 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- 5 SUB-AGENT SCHEMAS WITH EXPLICIT DATA FOUNDATION ---
+# --- DEEP MULTI-DIMENSIONAL SUB-AGENT 1 SCHEMAS (RAG & MARKET INTELLIGENCE) ---
+
+class CompetitorMatrixItem(BaseModel):
+    brand_name: str
+    price: str
+    grammage: str
+    pros_cons: str
+
+class BuyerPersonaItem(BaseModel):
+    name: str
+    age_range: str
+    profile_description: str
+    purchase_trigger: str
+
+class VoiceOfCustomer(BaseModel):
+    sample_size: str = "1.200+ Ulasan Scraped"
+    positive_triggers: List[str]
+    competitor_friction_points: List[str]
+
+class MarketDemandMetrics(BaseModel):
+    trending_views: str
+    monthly_search_volume: str
+    purchase_intent_score: str
 
 # SUB-AGENT 1: Market & Product Researcher (The Explorer)
 class Agent1MarketResearchOutput(BaseModel):
@@ -28,7 +50,11 @@ class Agent1MarketResearchOutput(BaseModel):
     usp: str
     pain_points: List[str]
     competitor_proxy: str
-    data_foundation: str  # Dasar data & riset pasar kompetitor
+    market_demand: Optional[MarketDemandMetrics] = None
+    voice_of_customer: Optional[VoiceOfCustomer] = None
+    competitor_matrix: Optional[List[CompetitorMatrixItem]] = None
+    buyer_personas: Optional[List[BuyerPersonaItem]] = None
+    data_foundation: str
 
 # SUB-AGENT 2: Strategy Architect (The Planner)
 class Agent2StrategyOutput(BaseModel):
@@ -41,7 +67,7 @@ class Agent2StrategyOutput(BaseModel):
     bidding_model: Literal["CPM", "CPC", "CPA"]
     max_cpa_limit: int
     strategic_rationale: str
-    data_foundation: str  # Dasar perhitungan batas toleransi CPA & kesesuaian platform
+    data_foundation: str
 
 # SUB-AGENT 3: Creative Director & Copywriter (The Wordsmith)
 class VideoScriptSchema(BaseModel):
@@ -54,7 +80,7 @@ class Agent3CopywriterOutput(BaseModel):
     primary_text: str  # Framework PAS (Problem - Agitate - Solution)
     cta: str
     video_script: Optional[VideoScriptSchema] = None
-    data_foundation: str  # Dasar psikologi copywriting & alasan pemilihan hook
+    data_foundation: str
 
 # SUB-AGENT 4: Art Director & Visual Designer (The Creator)
 class Agent4VisualOutput(BaseModel):
@@ -62,7 +88,7 @@ class Agent4VisualOutput(BaseModel):
     visual_mood: str
     aspect_ratio: str
     recommended_composition: str
-    data_foundation: str  # Dasar teori warna, pencahayaan & algoritma CTR visual
+    data_foundation: str
 
 # SUB-AGENT 5: Adversarial Evaluator & Executor (The QA & Deployer)
 class FinancialMetrics(BaseModel):
@@ -75,7 +101,7 @@ class FinancialMetrics(BaseModel):
     roas_percentage: float
     roas_status: Literal["PROFIT", "BONCOS"]
     summary: str
-    formula_breakdown: str  # Penjelasan matematis CPM -> CTR -> CVR -> Laba
+    formula_breakdown: str
 
 class Agent5QAAndDeployOutput(BaseModel):
     qc_status: Literal["APPROVED", "REVISED", "VETO"]
@@ -84,7 +110,7 @@ class Agent5QAAndDeployOutput(BaseModel):
     roas_report: FinancialMetrics
     tracking_link: str
     deployment_status: str
-    data_foundation: str  # Dasar audit kualitas dan validasi deployment
+    data_foundation: str
 
 # COMPREHENSIVE PIPELINE RESULT
 class MultiAgentPipelineResult(BaseModel):
@@ -96,17 +122,8 @@ class MultiAgentPipelineResult(BaseModel):
     agent5_deploy: Optional[Agent5QAAndDeployOutput] = None
     message: Optional[str] = None
 
-    # Backward compatibility helpers
-    @property
-    def product(self):
-        return self.agent1_research
-
     @property
     def financial_report(self):
-        return self.agent2_strategy
-
-    @property
-    def strategy(self):
         return self.agent2_strategy
 
     @property

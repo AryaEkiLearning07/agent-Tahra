@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any
 from app.services.llm_gateway import llm_gateway
 from app.services.roas_calculator import roas_calculator
+from app.services.market_intelligence import market_intelligence_engine
 from app.schemas.campaign import (
     CampaignCreate,
     Agent1MarketResearchOutput,
@@ -56,8 +57,21 @@ class MultiAgentOrchestrator:
             user_message=agent1_user,
             temperature=0.2
         )
-        if "data_foundation" not in raw_agent1:
-            raw_agent1["data_foundation"] = f"Berdasarkan benchmark industri {input_data.kategori} di rentang harga Rp {input_data.harga_jual:,}, produk memiliki posisi bersaing langsung dengan {raw_agent1.get('competitor_proxy', 'pesaing lokal')}."
+        
+        # Inject RAG Deep Market Intelligence Dossier
+        rag_intel = market_intelligence_engine.synthesize_market_dossier(
+            product_name=input_data.product_name,
+            category=input_data.kategori,
+            harga_jual=input_data.harga_jual
+        )
+        
+        raw_agent1["market_demand"] = rag_intel.get("market_demand")
+        raw_agent1["voice_of_customer"] = rag_intel.get("voice_of_customer")
+        raw_agent1["competitor_matrix"] = rag_intel.get("competitor_matrix")
+        raw_agent1["buyer_personas"] = rag_intel.get("buyer_personas")
+
+        if "data_foundation" not in raw_agent1 or not raw_agent1["data_foundation"]:
+            raw_agent1["data_foundation"] = rag_intel.get("data_foundation", f"Berdasarkan benchmark industri {input_data.kategori} di rentang harga Rp {input_data.harga_jual:,}, produk memiliki posisi bersaing langsung dengan {raw_agent1.get('competitor_proxy', 'pesaing lokal')}.")
         
         agent1_res = Agent1MarketResearchOutput(**raw_agent1)
 
