@@ -38,19 +38,22 @@ import { calculateMargin, formatRp } from '../utils/formatters';
 export default function NewCampaign() {
   const navigate = useNavigate();
 
-  // Form State
+  // Smart Prompt & Parameter State
+  const [promptText, setPromptText] = useState('');
+  const [isManualEdit, setIsManualEdit] = useState(false);
   const [form, setForm] = useState({
     product_name: '',
-    harga_jual: '',
-    hpp: '',
+    harga_jual: '35000',
+    hpp: '15000',
     budget_harian: '100000',
-    kategori: 'Fisik',
+    kategori: 'Otomatis AI',
     platform: 'TikTok',
-    destination_type: 'whatsapp', // 'whatsapp' | 'marketplace'
+    destination_type: 'whatsapp', // 'whatsapp' | 'website' | 'marketplace'
     destination_value: '081289123456',
+    detected_packages: [],
+    selected_package: '100000',
     photo_file: null,
     photo_preview: null,
-    selected_package: '100000',
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -61,10 +64,127 @@ export default function NewCampaign() {
   const [isVetoed, setIsVetoed] = useState(false);
   const [vetoAdvice, setVetoAdvice] = useState('');
 
+  // Universal Semantic Parser: Automatically extracts product, prices, packages, and contact from prompt
+  const parsePromptToParams = (text) => {
+    if (!text.trim()) return;
+
+    const tLower = text.toLowerCase();
+
+    // 1. Detect Phone Number / WhatsApp
+    const phoneMatch = text.match(/(?:08|628|\+628)[0-9\-\s]{8,14}/);
+    let destType = 'whatsapp';
+    let destVal = '081289123456';
+    if (phoneMatch) {
+      destVal = phoneMatch[0].replace(/[^0-9]/g, '');
+      destType = 'whatsapp';
+    } else if (tLower.includes('http') || tLower.includes('.com') || tLower.includes('.id') || tLower.includes('website')) {
+      const urlMatch = text.match(/https?:\/\/[^\s]+|[a-zA-Z0-9-]+\.(?:com|id|co\.id|net|io)[^\s]*/);
+      if (urlMatch) {
+        destVal = urlMatch[0];
+        destType = 'website';
+      }
+    } else if (tLower.includes('shopee') || tLower.includes('tokopedia') || tLower.includes('tiktok shop')) {
+      destType = 'marketplace';
+      destVal = 'Toko Resmi Marketplace';
+    }
+
+    // 2. Extract Prices & Numbers (e.g. 300rb, 300.000, 300k, 35000, 1.2jt)
+    const priceMatches = [];
+    const rbRegex = /(\d+(?:[.,]\d+)?)\s*(?:rb|k|ribu)/gi;
+    let m;
+    while ((m = rbRegex.exec(text)) !== null) {
+      const num = parseFloat(m[1].replace(',', '.')) * 1000;
+      priceMatches.push(Math.round(num));
+    }
+    const jtRegex = /(\d+(?:[.,]\d+)?)\s*(?:jt|juta)/gi;
+    while ((m = jtRegex.exec(text)) !== null) {
+      const num = parseFloat(m[1].replace(',', '.')) * 1000000;
+      priceMatches.push(Math.round(num));
+    }
+    const rawNumRegex = /rp\s*(\d{1,3}(?:\.\d{3})+|\d{4,9})/gi;
+    while ((m = rawNumRegex.exec(text)) !== null) {
+      const num = parseInt(m[1].replace(/\./g, ''), 10);
+      priceMatches.push(num);
+    }
+
+    let detectedPrice = 35000;
+    let detectedHpp = 15000;
+    let packages = [];
+
+    if (priceMatches.length === 1) {
+      detectedPrice = priceMatches[0];
+      detectedHpp = Math.round(detectedPrice * 0.45);
+      packages = [{ name: 'Paket Utama', price: detectedPrice }];
+    } else if (priceMatches.length >= 2) {
+      // Multiple prices detected (Multi-package or Price + HPP)
+      if (tLower.includes('modal') || tLower.includes('hpp')) {
+        detectedPrice = Math.max(...priceMatches);
+        detectedHpp = Math.min(...priceMatches);
+        packages = [{ name: 'Produk Utama', price: detectedPrice }];
+      } else {
+        priceMatches.sort((a, b) => a - b);
+        detectedPrice = priceMatches[0]; // Base package
+        detectedHpp = Math.round(detectedPrice * 0.4);
+        packages = priceMatches.map((p, idx) => ({
+          name: idx === 0 ? 'Paket Basic' : idx === 1 ? 'Paket Pro / Video' : `Paket Tier ${idx + 1}`,
+          price: p,
+        }));
+      }
+    } else {
+      // Default intelligent estimation if no price mentioned
+      if (tLower.includes('jasa') || tLower.includes('foto') || tLower.includes('kursus') || tLower.includes('desain')) {
+        detectedPrice = 300000;
+        detectedHpp = 120000;
+      } else if (tLower.includes('kaos') || tLower.includes('baju') || tLower.includes('fashion')) {
+        detectedPrice = 85000;
+        detectedHpp = 38000;
+      } else if (tLower.includes('kucing') || tLower.includes('pet')) {
+        detectedPrice = 25000;
+        detectedHpp = 10000;
+      } else {
+        detectedPrice = 35000;
+        detectedHpp = 15000;
+      }
+    }
+
+    // 3. Extract Clean Product Name (Strip boilerplate words)
+    let cleanName = text
+      .replace(/(?:ada|paket|harga|rp|nomor|wa|whatsapp|hubungi|kontak|di|murah|promo|diskon|\.com|\.id)[^,\n]*/gi, '')
+      .replace(/[0-9\-\s]{8,14}/g, '')
+      .replace(/[,;.]+/g, ' ')
+      .trim();
+
+    if (!cleanName || cleanName.length < 3) {
+      cleanName = text.split(/[,\n.]/)[0].trim();
+    }
+    if (cleanName.length > 50) {
+      cleanName = cleanName.slice(0, 50);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      product_name: cleanName || text.slice(0, 40),
+      harga_jual: String(detectedPrice),
+      hpp: String(detectedHpp),
+      destination_type: destType,
+      destination_value: destVal,
+      detected_packages: packages,
+    }));
+  };
+
+  const handlePromptChange = (e) => {
+    const val = e.target.value;
+    setPromptText(val);
+    parsePromptToParams(val);
+  };
+
+  const handleApplyPreset = (presetText) => {
+    setPromptText(presetText);
+    parsePromptToParams(presetText);
+  };
+
   // Live Unit Economics Calculation
   const marginData = calculateMargin(form.harga_jual, form.hpp);
-  const hasValues = Number(form.harga_jual) > 0 && Number(form.hpp) > 0;
-
   const budgetNum = Number(form.budget_harian) || 100000;
   const adSpendPure = Math.round(budgetNum * 0.9);
   const aiFee = Math.round(budgetNum * 0.1);
@@ -82,7 +202,7 @@ export default function NewCampaign() {
 
   const validate = () => {
     const errs = {};
-    if (!form.product_name.trim()) errs.product_name = 'Nama produk wajib diisi.';
+    if (!form.product_name.trim() && !promptText.trim()) errs.product_name = 'Ceritakan produk atau jasa yang ingin diiklankan.';
     if (!form.harga_jual || Number(form.harga_jual) <= 0)
       errs.harga_jual = 'Harga jual harus lebih dari Rp 0.';
     if (!form.hpp || Number(form.hpp) <= 0)
@@ -208,259 +328,224 @@ export default function NewCampaign() {
       <Navbar />
 
       <PageContainer
-        badge="Form Parameter & Autopilot Ads"
-        title="Buat Strategi Kampanye Baru"
-        description="Lengkapi parameter produk. 5 Sub-Agent AI akan menganalisis pasar, merancang strategi periklanan, dan menyiapkan blueprint eksekusi secara otonom."
+        badge="AI Autopilot Ads • Universal Discovery"
+        title="Buat Strategi Kampanye Iklan Baru"
+        description="Ceritakan produk fisik atau layanan jasa usaha Anda secara bebas. AI akan membedah pasar, mengekstrak parameter, dan menyusun strategi iklan 5 tahap secara otonom."
         backUrl="/dashboard"
         backLabel="Kembali ke Dashboard"
         maxWidth="max-w-5xl"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Form Column */}
-          <div className="lg:col-span-7">
+          {/* Main Input Column */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
             <Card hasRedBar className="p-6 sm:p-8">
               <form onSubmit={handleFormPreSubmit} className="flex flex-col gap-5">
-                {/* 1. Basic Product Info */}
+                {/* 1. Quick Inspiration Presets */}
                 <div>
-                  <Input
-                    label="Nama Produk / Brand / Layanan Jasa Anda"
-                    id="product_name"
-                    name="product_name"
-                    type="text"
-                    required
-                    placeholder="Contoh: Jasa Foto Produk Kopi, Sambal Cumi Asin 150g, Kaos Oversize, Cuci Sepatu..."
-                    value={form.product_name}
-                    onChange={(e) =>
-                      setForm({ ...form, product_name: e.target.value })
-                    }
-                    error={formErrors.product_name}
-                    helperText="💡 Masukkan nama produk fisik atau layanan jasa usaha Anda secara bebas. AI akan membedah pasar secara otomatis."
-                  />
-                </div>
-
-                {/* 2. Price and HPP Financial Engine */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Harga Jual ke Konsumen"
-                    id="harga_jual"
-                    name="harga_jual"
-                    type="number"
-                    required
-                    prefix="Rp"
-                    placeholder="35000"
-                    value={form.harga_jual}
-                    onChange={(e) =>
-                      setForm({ ...form, harga_jual: e.target.value })
-                    }
-                    error={formErrors.harga_jual}
-                  />
-
-                  <Input
-                    label="HPP / Biaya Modal Pokok"
-                    id="hpp"
-                    name="hpp"
-                    type="number"
-                    required
-                    prefix="Rp"
-                    placeholder="15000"
-                    value={form.hpp}
-                    onChange={(e) => setForm({ ...form, hpp: e.target.value })}
-                    error={formErrors.hpp}
-                  />
-                </div>
-
-                {/* AI Automated Market Discovery Banner (Zero Manual Select) */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-neutral-900/90 to-neutral-950 border border-neutral-800 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-                      <Cpu className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">Klasifikasi Kategori & Saluran Iklan</span>
-                        <span className="text-[10px] font-black uppercase text-rose-400 font-mono px-1.5 py-0.2 rounded bg-rose-950/40 border border-rose-500/30">
-                          100% OTONOM
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-neutral-400 mt-0.5 leading-snug">
-                        AI Sub-Agent 1 & 2 secara otomatis mendeteksi kategori pasar dan memilih platform iklan paling menguntungkan (TikTok / Reels / Google).
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Destination Link Selector */}
-                <div className="pt-2 border-t border-neutral-800">
-                  <label className="text-xs font-bold text-neutral-300 block mb-2">
-                    Tujuan Penjualan (Kemana Calon Pembeli Diarahkan Saat Klik Iklan?)
-                  </label>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ 
-                        ...form, 
-                        destination_type: 'whatsapp',
-                        destination_value: form.destination_value.startsWith('http') ? '081289123456' : form.destination_value || '081289123456'
-                      })}
-                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
-                        form.destination_type === 'whatsapp'
-                          ? 'bg-emerald-950/30 border-emerald-500/60 text-white ring-1 ring-emerald-500/40'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                      }`}
-                    >
-                      <MessageCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <div>
-                        <strong className="text-xs block">WhatsApp Admin</strong>
-                        <span className="text-[10px] text-neutral-400">Closing personal via chat</span>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setForm({ 
-                        ...form, 
-                        destination_type: 'marketplace',
-                        destination_value: form.destination_value.startsWith('08') ? 'https://shopee.co.id/toko-tahra-official' : form.destination_value || 'https://shopee.co.id/toko-tahra-official'
-                      })}
-                      className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
-                        form.destination_type === 'marketplace'
-                          ? 'bg-rose-950/30 border-rose-500/60 text-white ring-1 ring-rose-500/40'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                      }`}
-                    >
-                      <ShoppingBag className="w-5 h-5 text-rose-400 shrink-0" />
-                      <div>
-                        <strong className="text-xs block">Shopee / TikTok Shop</strong>
-                        <span className="text-[10px] text-neutral-400">Checkout otomatis toko</span>
-                      </div>
-                    </button>
-                  </div>
-
-                  {form.destination_type === 'whatsapp' ? (
-                    <Input
-                      label="Nomor WhatsApp Admin UMKM"
-                      id="destination_value"
-                      type="text"
-                      placeholder="081289123456"
-                      value={form.destination_value}
-                      onChange={(e) => setForm({ ...form, destination_value: e.target.value })}
-                      helperText="AI akan otomatis membuatkan tautan chat WhatsApp dengan pesan pesan instan."
-                    />
-                  ) : (
-                    <Input
-                      label="Tautan Toko Online / Shopee / TikTok Shop"
-                      id="destination_value"
-                      type="text"
-                      placeholder="https://shopee.co.id/toko-tahra-official"
-                      value={form.destination_value}
-                      onChange={(e) => setForm({ ...form, destination_value: e.target.value })}
-                    />
-                  )}
-                </div>
-
-                {/* 3. Product Photo Upload (Optional Multimodal Vision Audit) */}
-                <div className="pt-2 border-t border-neutral-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-neutral-300">
-                      Foto Asli Produk (Opsional - Vision AI Audit)
-                    </label>
-                    <span className="text-[10px] text-rose-400 font-semibold font-mono">
-                      {form.photo_preview ? '✓ FOTO TERUNGGAH' : 'AI STUDIO PROMPT'}
-                    </span>
-                  </div>
-
-                  {form.photo_preview ? (
-                    <div className="relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900 p-2 flex items-center gap-3">
-                      <img
-                        src={form.photo_preview}
-                        alt="Preview Produk"
-                        className="w-16 h-16 object-cover rounded-xl border border-neutral-700"
-                      />
-                      <div className="flex-1 min-w-0 text-xs">
-                        <span className="text-white font-bold block truncate">
-                          {form.photo_file?.name || 'Foto Produk Terpilih'}
-                        </span>
-                        <span className="text-emerald-400 text-[11px] block mt-0.5">
-                          Sub-Agent 4 akan mengaudit kontras & keterbacaan visual ini.
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, photo_file: null, photo_preview: null })}
-                        className="p-1.5 rounded-lg bg-neutral-800 text-neutral-400 hover:text-white cursor-pointer"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="rounded-2xl border-2 border-dashed border-neutral-800 hover:border-rose-500/50 bg-neutral-950/40 p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors">
-                      <UploadCloud className="w-7 h-7 text-neutral-500 mb-1.5" />
-                      <span className="text-xs font-bold text-neutral-300">
-                        Klik untuk Unggah Foto Produk
-                      </span>
-                      <span className="text-[10px] text-neutral-500 mt-0.5">
-                        Format PNG/JPG (Jika kosong, AI akan merangkai Prompt Studio 8K)
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-
-                {/* 4. Ad Budget Package Selector */}
-                <div className="pt-2 border-t border-neutral-800">
-                  <label className="text-xs font-bold text-neutral-300 block mb-2">
-                    Pilih Paket Alokasi Saldo Iklan (Simulasi Deposit)
-                  </label>
-
-                  <div className="grid grid-cols-3 gap-2.5 mb-3">
+                  <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-2">
+                    💡 Contoh Cepat Siap Pakai (Klik untuk Coba):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
                     {[
-                      { val: '100000', label: 'Uji Coba', days: '2-3 Hari' },
-                      { val: '300000', label: 'Growth', days: '5-7 Hari' },
-                      { val: '500000', label: 'Scale-Up', days: '10-14 Hari' },
-                    ].map((pkg) => (
+                      { label: '☕ Jasa Foto Produk Kopi', text: 'Jasa Foto Produk Kopi di Jakarta. Ada Paket Foto Menu Rp 300.000 dan Paket Video Reels Rp 750.000. Hubungi WA 081289123456.' },
+                      { label: '🐱 Makanan Kucing Basah Pouch', text: 'Makanan Kucing Basah Pouch 85g rasa Salmon, harga jual Rp 20.000, modal HPP Rp 8.000. Hubungi WA 081289123456.' },
+                      { label: '👕 Kaos Oversize Combed', text: 'Kaos Oversize Pria Cotton Combed 24s, harga Rp 85.000, modal Rp 38.000. Toko Shopee: shopee.co.id/kaosdistro' },
+                      { label: '🌶️ Sambal Cumi Asin 150g', text: 'Sambal Cumi Asin Gurih 150g pedas segar alami, harga Rp 35.000, modal Rp 15.000. WhatsApp 081289123456.' },
+                      { label: '🚗 Jasa Cuci Mobil & Salon', text: 'Jasa Cuci Mobil & Salon Detailing panggilan. Paket Cuci Rp 65.000 dan Paket Coating Rp 450.000. Hubungi WA 081289123456.' }
+                    ].map((p, idx) => (
                       <button
-                        key={pkg.val}
+                        key={idx}
                         type="button"
-                        onClick={() => setForm({ ...form, budget_harian: pkg.val, selected_package: pkg.val })}
-                        className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                          form.selected_package === pkg.val
-                            ? 'bg-rose-950/40 border-rose-500 text-white ring-1 ring-rose-500 shadow-sm'
-                            : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                        }`}
+                        onClick={() => handleApplyPreset(p.text)}
+                        className="px-3 py-1.5 bg-neutral-900 hover:bg-rose-950/40 text-neutral-300 hover:text-white border border-neutral-800 hover:border-rose-500/50 rounded-xl text-xs font-medium transition-all cursor-pointer shadow-sm"
                       >
-                        <span className="text-[10px] font-bold text-rose-400 uppercase block">{pkg.label}</span>
-                        <strong className="text-xs font-black block text-white mt-0.5">{formatRp(Number(pkg.val))}</strong>
-                        <span className="text-[9px] text-neutral-500">{pkg.days}</span>
+                        {p.label}
                       </button>
                     ))}
                   </div>
-
-                  <Input
-                    label="Atau Atur Budget Khusus (Rp)"
-                    id="budget_harian"
-                    type="number"
-                    prefix="Rp"
-                    value={form.budget_harian}
-                    onChange={(e) => setForm({ ...form, budget_harian: e.target.value, selected_package: 'custom' })}
-                    error={formErrors.budget_harian}
-                  />
                 </div>
 
+                {/* 2. Universal Magic Prompt Box */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="prompt_input" className="text-sm font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-rose-500" />
+                      Ceritakan Produk / Jasa / Usaha Anda:
+                    </label>
+                    <span className="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30">
+                      LIVE AI AUTO-EXTRACT
+                    </span>
+                  </div>
+
+                  <textarea
+                    id="prompt_input"
+                    rows={4}
+                    placeholder="Contoh: Jasa Foto Produk Kopi di Jakarta. Ada Paket Foto Menu Rp 300.000 dan Paket Video Reels Rp 750.000. Hubungi WA 081289123456..."
+                    value={promptText}
+                    onChange={handlePromptChange}
+                    className="w-full p-4 rounded-2xl bg-neutral-950 border border-neutral-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 text-white text-sm leading-relaxed placeholder:text-neutral-500 outline-none transition-all shadow-inner resize-none font-sans"
+                  />
+                  {formErrors.product_name && (
+                    <span className="text-xs text-rose-500 mt-1 block font-medium">{formErrors.product_name}</span>
+                  )}
+                  <span className="text-[11px] text-neutral-400 mt-1.5 block leading-relaxed">
+                    💡 <em>Ketik bebas apa saja: nama usaha, banyak paket harga, HPP, atau kontak WhatsApp. AI otomatis membedah parameternya secara real-time di bawah.</em>
+                  </span>
+                </div>
+
+                {/* 3. Live AI Parsed Brief Preview Card */}
+                <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-800 flex flex-col gap-3.5 shadow-lg">
+                  <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
+                    <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2 font-mono">
+                      <Bot className="w-4 h-4 text-rose-500" />
+                      HASIL EKSTRAKSI PARAMETER AI (LIVE)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsManualEdit(!isManualEdit)}
+                      className="text-xs text-neutral-400 hover:text-white font-medium flex items-center gap-1 cursor-pointer"
+                    >
+                      {isManualEdit ? 'Tutup Penyesuaian ✕' : '✏️ Sesuaikan Nilai Manual'}
+                    </button>
+                  </div>
+
+                  {/* Extracted Entity Tags */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        🏷️ Usaha / Produk:
+                      </span>
+                      <strong className="text-xs text-white block mt-0.5 truncate">
+                        {form.product_name || 'Menunggu input...'}
+                      </strong>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        💰 Harga Jual / Paket:
+                      </span>
+                      <strong className="text-xs text-emerald-400 font-mono block mt-0.5">
+                        {formatRp(form.harga_jual)}
+                      </strong>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        📉 Estimasi Modal (HPP):
+                      </span>
+                      <strong className="text-xs text-neutral-300 font-mono block mt-0.5">
+                        {formatRp(form.hpp)} ({marginData.marginPercent.toFixed(0)}% Margin)
+                      </strong>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        📞 Tujuan Kontak:
+                      </span>
+                      <strong className="text-xs text-white block mt-0.5 truncate">
+                        {form.destination_type === 'whatsapp' ? `WA: ${form.destination_value}` : form.destination_value}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* Multi-Package Badges if multiple packages detected */}
+                  {form.detected_packages && form.detected_packages.length > 1 && (
+                    <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/30">
+                      <span className="text-[11px] font-bold text-rose-300 block mb-1.5">
+                        📦 Terdeteksi {form.detected_packages.length} Struktur Paket Harga:
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {form.detected_packages.map((pkg, idx) => (
+                          <span key={idx} className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-200 font-mono">
+                            {pkg.name}: <strong>{formatRp(pkg.price)}</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual Overrides Accordion (Hidden by default for Zero Friction) */}
+                  {isManualEdit && (
+                    <div className="pt-3 border-t border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in">
+                      <Input
+                        label="Nama Usaha / Produk"
+                        id="product_name_override"
+                        value={form.product_name}
+                        onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+                      />
+                      <Input
+                        label="Harga Jual (Rp)"
+                        id="harga_jual_override"
+                        type="number"
+                        value={form.harga_jual}
+                        onChange={(e) => setForm({ ...form, harga_jual: e.target.value })}
+                      />
+                      <Input
+                        label="Modal HPP (Rp)"
+                        id="hpp_override"
+                        type="number"
+                        value={form.hpp}
+                        onChange={(e) => setForm({ ...form, hpp: e.target.value })}
+                      />
+                      <Input
+                        label="Kontak / Link WA / Web"
+                        id="destination_override"
+                        value={form.destination_value}
+                        onChange={(e) => setForm({ ...form, destination_value: e.target.value })}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Budget Allocation Package Selector */}
+                <div className="pt-3 border-t border-neutral-800">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-xs font-bold text-neutral-300">
+                      Pilih Paket Alokasi Saldo Iklan (Simulasi Deposit)
+                    </label>
+                    <span className="text-[10px] font-mono text-neutral-400">100% Prabayar Aman</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                    {[
+                      { id: '100000', name: 'Uji Coba', amount: 100000, days: '2-3 Hari', desc: 'Validasi pasar termurah' },
+                      { id: '300000', name: 'Growth', amount: 300000, days: '5-7 Hari', desc: 'Optimal jaring pembeli' },
+                      { id: '500000', name: 'Scale-Up', amount: 500000, days: '10-14 Hari', desc: 'Skala omzet maksimal' },
+                    ].map((pkg) => {
+                      const isSelected = form.budget_harian === pkg.id;
+                      return (
+                        <div
+                          key={pkg.id}
+                          onClick={() => setForm({ ...form, budget_harian: pkg.id, selected_package: pkg.id })}
+                          className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-rose-950/30 border-rose-500/80 ring-1 ring-rose-500/50 text-white'
+                              : 'bg-neutral-900/80 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-[10px] font-black uppercase tracking-wider">{pkg.name}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-950 text-neutral-400">{pkg.days}</span>
+                            </div>
+                            <p className="text-base font-black text-white font-mono">{formatRp(pkg.amount)}</p>
+                          </div>
+                          <span className="text-[10px] text-neutral-400 mt-2 block">{pkg.desc}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Submit Trigger Button */}
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="brand"
                   size="lg"
-                  isFullWidth
-                  rightIcon={<ArrowRight className="w-5 h-5" />}
-                  className="mt-2 text-sm font-black"
+                  className="w-full mt-2 font-black py-4 shadow-xl shadow-rose-950/50 text-sm flex items-center justify-center gap-2"
                 >
-                  Lanjut ke Konfirmasi Saldo & Eksekusi AI →
+                  <span>🚀 Lanjut ke Konfirmasi Saldo & Eksekusi AI</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </form>
             </Card>
