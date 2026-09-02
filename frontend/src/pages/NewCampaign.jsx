@@ -223,79 +223,19 @@ export default function NewCampaign() {
                 {/* 1. Basic Product Info */}
                 <div>
                   <Input
-                    label="Nama Produk / Deskripsi Usaha Anda"
+                    label="Nama Produk / Brand / Layanan Jasa Anda"
                     id="product_name"
                     name="product_name"
                     type="text"
                     required
-                    placeholder="e.g. Makanan Kucing, Sambal Cumi, Kaos Oversize, Kopi Susu..."
+                    placeholder="Contoh: Jasa Foto Produk Kopi, Sambal Cumi Asin 150g, Kaos Oversize, Cuci Sepatu..."
                     value={form.product_name}
                     onChange={(e) =>
                       setForm({ ...form, product_name: e.target.value })
                     }
                     error={formErrors.product_name}
+                    helperText="💡 Masukkan nama produk fisik atau layanan jasa usaha Anda secara bebas. AI akan membedah pasar secara otomatis."
                   />
-
-                  {/* AI SMART CLARIFICATION QUICK-PILLS */}
-                  {(() => {
-                    const query = form.product_name.toLowerCase();
-                    let suggestions = [];
-                    if (query.includes('kucing') || query.includes('cat') || query.includes('pet')) {
-                      suggestions = [
-                        { label: '🥩 Makanan Basah / Wet Food Pouch 85g', val: 'Makanan Kucing Basah Pouch 85g' },
-                        { label: '🥣 Dry Food Kering Karung 1-2kg', val: 'Dry Food Makanan Kucing Kering 1.5kg' },
-                        { label: '🏷️ Repack Hemat 500g', val: 'Makanan Kucing Repack Hemat 500g' },
-                        { label: '✨ Premium Grain-Free Holistic', val: 'Makanan Kucing Premium Grain-Free 1kg' }
-                      ];
-                    } else if (query.includes('kopi') || query.includes('coffee')) {
-                      suggestions = [
-                        { label: '☕ Kopi Susu Aren Botol 250ml', val: 'Kopi Susu Gula Aren Botol 250ml' },
-                        { label: '🫘 Biji Kopi Arabika 200g', val: 'Biji Kopi Arabika Single Origin 200g' },
-                        { label: '📦 Kopi Drip Bag Sachet Praktis', val: 'Kopi Drip Bag Praktis Isi 5 Sachet' }
-                      ];
-                    } else if (query.includes('sambal') || query.includes('pedas')) {
-                      suggestions = [
-                        { label: '🌶️ Sambal Cumi Asin Pouch 150g', val: 'Sambal Cumi Asin Gurih Pouch 150g' },
-                        { label: '🐟 Sambal Cakalang Asap 150g', val: 'Sambal Ikan Cakalang Asap 150g' },
-                        { label: '🧄 Sambal Bawang Ekstra Pedas', val: 'Sambal Bawang Ekstra Pedas 130g' }
-                      ];
-                    } else if (query.includes('baju') || query.includes('kaos') || query.includes('tshirt') || query.includes('pakaian')) {
-                      suggestions = [
-                        { label: '👕 Kaos Oversize Cotton 24s', val: 'Kaos Oversize Pria Cotton Combed 24s' },
-                        { label: '👗 Gamis / Dress Casual Wanita', val: 'Gamis Dress Crinkle Premium Busui' },
-                        { label: '👔 Kemeja Linen Lengan Pendek', val: 'Kemeja Linen Pria Lengan Pendek' }
-                      ];
-                    } else if (query.includes('skincare') || query.includes('serum') || query.includes('wajah')) {
-                      suggestions = [
-                        { label: '✨ Serum Pencerah Niacinamide 20ml', val: 'Serum Wajah Brightening Niacinamide 20ml' },
-                        { label: '🧴 Sunscreen Gel SPF 50', val: 'Sunscreen Gel Ringan SPF 50 50ml' },
-                        { label: '🧼 Facial Wash Gentle 100ml', val: 'Pembersih Wajah Gentle Low pH 100ml' }
-                      ];
-                    }
-
-                    if (suggestions.length === 0) return null;
-
-                    return (
-                      <div className="mt-2.5 p-3 rounded-2xl bg-rose-950/20 border border-rose-500/30 flex flex-col gap-1.5 animate-in fade-in">
-                        <span className="text-[11px] font-bold text-rose-300 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-rose-400" />
-                          Bantu AI lebih spesifik? Klik salah satu varian ini (Opsional):
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {suggestions.map((s, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => setForm({ ...form, product_name: s.val })}
-                              className="px-2.5 py-1 bg-neutral-900 hover:bg-rose-900/40 text-neutral-300 hover:text-white border border-neutral-800 hover:border-rose-500/50 rounded-lg text-xs transition-colors cursor-pointer"
-                            >
-                              {s.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {/* 2. Price and HPP Financial Engine */}

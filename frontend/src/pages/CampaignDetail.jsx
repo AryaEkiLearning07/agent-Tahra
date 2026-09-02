@@ -67,12 +67,66 @@ export default function CampaignDetail() {
   const rawPrice = campaign?.harga_jual || result?.agent2_strategy?.margin_value || 35000;
   const rawHpp = campaign?.hpp || (rawPrice * 0.45);
 
-  // Dynamic Product Intelligence Generator (Adapts to ANY Product: Pet food, Coffee, Fashion, Sambal, etc.)
+  // Dynamic Product Intelligence Generator (Adapts to ANY Product: Pet food, Services, Coffee, Fashion, Sambal, etc.)
   const getDynamicProductIntel = (pName, price, hpp) => {
     const pLower = pName.toLowerCase();
+    const isService = pLower.includes('jasa') || pLower.includes('foto') || pLower.includes('fotografi') || pLower.includes('desain') || pLower.includes('service') || pLower.includes('cuci') || pLower.includes('kursus') || pLower.includes('bengkel') || pLower.includes('laundry');
     const isPet = pLower.includes('kucing') || pLower.includes('cat') || pLower.includes('pet') || pLower.includes('anjing') || pLower.includes('felibite');
-    const isCoffee = pLower.includes('kopi') || pLower.includes('coffee') || pLower.includes('cafe');
+    const isCoffee = !isService && (pLower.includes('kopi') || pLower.includes('coffee') || pLower.includes('cafe'));
     const isFashion = pLower.includes('kaos') || pLower.includes('baju') || pLower.includes('dress') || pLower.includes('tshirt') || pLower.includes('gamis');
+
+    if (isService) {
+      return {
+        product_class: 'Jasa & Layanan Kreatif',
+        category_name: 'Layanan Kreatif & Jasa Profesional',
+        usp: 'Hasil foto dan visual komersial beresolusi tinggi yang terbukti mendongkrak citra brand dan konversi penjualan.',
+        competitor_proxy: 'Agensi Studio Konvensional / Freelancer Lepas',
+        target_demography: 'Pemilik Bisnis Kuliner, Cafe/Resto, UMKM & Brand Owner Usia 22-45 tahun',
+        audience_psychography: 'Mencari jasa profesional terpercaya dengan hasil instan siap posting untuk meningkatkan omzet.',
+        demand_views: '450.2M+ Views (#JasaFotoProduk #FotografiKomersial)',
+        search_volume: '34.200 / bln',
+        sentiment_pos: [
+          '88% klien puas karena foto produk membuat brand terlihat 10x lebih mewah dan profesional.',
+          '79% mengapresiasi kecepatan revisi dan pengiriman file resolusi tinggi tepat waktu.',
+          '64% repeat order untuk sesi foto menu dan katalog produk baru.'
+        ],
+        sentiment_neg: [
+          '52% keluhan vendor pasaran: hasil foto gelap, warna tidak sesuai asli, dan respon lambat.',
+          '34% mengeluhkan biaya tersembunyi yang mahal tanpa garansi hasil.'
+        ],
+        competitor_matrix: [
+          { brand: `⭐ ${pName} (Layanan Anda)`, price: `Rp ${Number(price).toLocaleString('id-ID')}`, gram: '1 Paket Sesi', diff: 'Peralatan studio 8K profesional, harga transparan, revisi garansi, pengerjaan cepat.' },
+          { brand: 'Agensi Studio Besar Mall', price: 'Rp 1.500.000', gram: '1 Paket', diff: 'Nama agensi besar namun biaya sangat tinggi untuk skala UMKM.' },
+          { brand: 'Freelancer Murahan Tanpa Portofolio', price: 'Rp 150.000', gram: 'Basic', diff: 'Biaya murah tapi pencahayaan minim dan sering telat deadline.' }
+        ],
+        persona_1: { name: 'Eko (30th) - Owner Cafe & Brand Kopi', age: '24 - 40th', desc: 'Ingin promosi menu kopi baru di Instagram dan aplikasi pesan antar dengan visual menggugah selera.', trigger: 'Visual foto profesional yang langsung bikin orang haus & order.' },
+        persona_2: { name: 'Devi (28th) - Brand Manager UMKM', age: '25 - 35th', desc: 'Butuh stok aset visual berkualitas tinggi untuk materi iklan Meta dan TikTok Ads.', trigger: 'Aset foto komersial siap pasang iklan.' },
+        fase1: {
+          headline: 'Foto Produk Masih Gelap & Sepi Pembeli? Bikin Produkmu Terlihat Mewah!',
+          primary_text: `Visual yang menarik adalah kunci utama produk Anda dilirik di marketplace & media sosial. ${pName} siap menyulap produk Anda menjadi terlihat profesional, estetik, dan menggugah selera pembeli.`,
+          cta: 'Lihat Portofolio & Konsultasi Gratis 📸',
+          video_hook: 'Tunjukkan perbandingan dramatis Before (foto HP biasa gelap hambar) vs After (foto studio berkelas 8K yang langsung terlihat mewah)!',
+          body_3_10s: 'Pencahayaan studio komersial yang menonjolkan detail kelezatan dan estetika brand Anda.',
+          cta_10_15s: 'Hubungi WhatsApp admin kami sekarang untuk klaim promo sesi foto perdana!'
+        },
+        fase2: {
+          headline: 'Tingkatkan Nilai Jual Brand Anda! Diskon 20% Paket Sesi Foto Hari Ini!',
+          primary_text: `Khusus pemilik bisnis & UMKM! Ambil diskon 20% untuk layanan ${pName} hari ini + bonus 3 foto varian katalog siap posting.`,
+          cta: 'Klaim Diskon Jasa 20% Sekarang ⚡',
+          video_hook: 'Tunjukkan testimoni owner brand yang omzetnya naik drastis setelah mengganti foto produk lama dengan foto studio profesional.',
+          body_3_10s: 'Ribuan brand lokal sudah membuktikan peningkatan konversi penjualan dengan visual profesional.',
+          cta_10_15s: 'Klik chat WhatsApp sekarang untuk booking tanggal sesi foto Anda!'
+        },
+        fase3: {
+          headline: 'Paket Langganan Aset Bulanan! Lebih Hemat 35% untuk Seluruh Menu Anda',
+          primary_text: `Punya banyak varian produk baru setiap bulan? Ambil Paket Langganan Konten Visual ${pName} untuk persediaan aset promosi rutin.`,
+          cta: 'Pesan Paket Langganan Bulanan 📦',
+          video_hook: 'Tunjukkan kompilasi galeri 10+ foto produk berbagai angle yang siap digunakan untuk materi iklan dan medsos.',
+          body_3_10s: 'Solusi praktis dan hemat untuk kebutuhan konten branding berkelanjutan.',
+          cta_10_15s: 'Amankan kuota slot sesi foto bulanan Anda sekarang!'
+        }
+      };
+    }
 
     if (isPet) {
       return {
