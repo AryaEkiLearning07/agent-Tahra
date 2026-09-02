@@ -1,26 +1,28 @@
 version: '3.8'
 
-# Isolated project name to prevent conflicts with other Docker projects
+# Isolated project namespace to prevent collision with other Docker projects
 name: tahra-platform
 
 services:
   # -------------------------------------------------------------
-  # 1. DATABASE SERVICE (PostgreSQL 16)
+  # 1. DATABASE SERVICE (MariaDB 11.4)
   # -------------------------------------------------------------
   tahra-db:
-    image: postgres:16-alpine
+    image: mariadb:11.4
     container_name: tahra-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-tahra_db}
-      POSTGRES_USER: ${POSTGRES_USER:-tahra_admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tahra_secret_2026}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-tahra_root_2026}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-tahra_db}
+      MARIADB_USER: ${MARIADB_USER:-tahra_admin}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-tahra_secret_2026}
     volumes:
-      - tahra_db_data:/var/lib/postgresql/data
+      - tahra_mariadb_data:/var/lib/mysql
+      - ./database/tahra_db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - "${DB_PORT:-3307}:3306"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tahra_admin} -d ${POSTGRES_DB:-tahra_db}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,7 +43,7 @@ services:
         condition: service_healthy
     environment:
       - ENVIRONMENT=production
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-tahra_admin}:${POSTGRES_PASSWORD:-tahra_secret_2026}@tahra-db:5432/${POSTGRES_DB:-tahra_db}
+      - DATABASE_URL=mysql+aiomysql://${MARIADB_USER:-tahra_admin}:${MARIADB_PASSWORD:-tahra_secret_2026}@tahra-db:3306/${MARIADB_DATABASE:-tahra_db}
       - GROQ_API_KEY=${GROQ_API_KEY:-gsk_placeholder}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
       - LLM_PROVIDER=${LLM_PROVIDER:-groq}
@@ -69,7 +71,7 @@ services:
       - tahra-network
 
 volumes:
-  tahra_db_data:
+  tahra_mariadb_data:
     driver: local
 
 networks:
