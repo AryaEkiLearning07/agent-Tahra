@@ -87,7 +87,14 @@ class Agent2StrategyOutput(BaseModel):
     strategic_rationale: str
     data_foundation: str
 
-# SUB-AGENT 3: Creative Director & Copywriter (The Wordsmith)
+# --- SPECIALIZED CREATIVE SUB-AGENTS (SUB-AGENT 3) ---
+
+class SpecializedSubAgentsCreative(BaseModel):
+    sub_agent_3a_hook: str  # 0-3s Pattern Interrupt & Visual Hook
+    sub_agent_3b_pas_body: str  # Problem - Agitate - Solution Framework
+    sub_agent_3c_keywords_hashtags: List[str]  # High Intent & Trending FYP Tags
+    sub_agent_3d_urgency_cta: str  # Scarcity & Frictionless Call to Action
+
 class VideoScriptSchema(BaseModel):
     hook_0_3s: str
     body_3_10s: str
@@ -98,6 +105,8 @@ class Agent3CopywriterOutput(BaseModel):
     primary_text: str
     cta: str
     video_script: Optional[VideoScriptSchema] = None
+    sub_specialists: Optional[SpecializedSubAgentsCreative] = None
+    keywords_and_hashtags: Optional[List[str]] = None
     data_foundation: str
 
 # SUB-AGENT 4: Art Director & Visual Designer (The Creator)

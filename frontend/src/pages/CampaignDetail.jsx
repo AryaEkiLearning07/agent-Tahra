@@ -917,74 +917,154 @@ export default function CampaignDetail() {
                 </div>
               )}
 
-              {/* STAGE 3: The Wordsmith */}
+              {/* STAGE 3: The Wordsmith (4 Specialized Creative Sub-Agents) */}
               {activeStage === 2 && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-800">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-rose-500 font-mono">
-                        TAHAP 3 • NASKAH VIDEO 15S & COPYWRITING PAS
-                      </span>
-                      <h3 className="text-lg font-black text-white font-heading mt-0.5">
-                        Sub-Agent 3: Creative Copywriter (The Wordsmith)
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-rose-500 font-mono">
+                          CREATIVE COPYWRITING & HOOK SPECIALISTS
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                          4 SUB-SPECIALISTS TEAM
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black text-white font-heading mt-0.5">
+                        Sub-Agent 3: Creative Director Engine (The Wordsmith)
                       </h3>
                     </div>
                     <Badge variant="brand" size="md">PAS Framework • {activeFunnel.label}</Badge>
                   </div>
 
-                  {/* Headline */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
-                        Headline Iklan
-                      </span>
+                  {/* Sub-Specialist 3A: Hook & Pattern Interrupt */}
+                  <div className="p-5 rounded-3xl bg-neutral-900/80 border border-neutral-800 flex flex-col gap-3 shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black font-mono">
+                          3A
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                          Sub-Spesialis 3A: Hook & Pattern Interrupt Specialist (0-3 Detik Pertama)
+                        </h4>
+                      </div>
                       <button
-                        onClick={() => handleCopy(activeFunnel.headline, 'head')}
+                        onClick={() => handleCopy(activeFunnel.video_hook, 'hook_3a')}
                         className="text-xs text-neutral-400 hover:text-rose-400 font-bold flex items-center gap-1.5 cursor-pointer"
                       >
-                        {copiedKey === 'head' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>Salin</span>
+                        {copiedKey === 'hook_3a' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>Salin Hook</span>
                       </button>
                     </div>
-                    <div className="text-base font-black text-white bg-neutral-900/90 p-4 rounded-2xl border border-neutral-800 leading-snug font-heading">
-                      {activeFunnel.headline}
-                    </div>
-                  </div>
 
-                  {/* Caption */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
-                        Caption Iklan (Formula Problem - Agitate - Solution)
-                      </span>
-                      <button
-                        onClick={() => handleCopy(activeFunnel.primary_text, 'body')}
-                        className="text-xs text-neutral-400 hover:text-rose-400 font-bold flex items-center gap-1.5 cursor-pointer"
-                      >
-                        {copiedKey === 'body' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span>Salin</span>
-                      </button>
+                    <div className="p-4 bg-black/60 rounded-2xl border border-rose-500/30 font-medium text-xs sm:text-sm text-neutral-200 leading-relaxed">
+                      🎬 <strong>Visual Hook:</strong> "{activeFunnel.video_hook}"
                     </div>
-                    <div className="text-neutral-300 bg-neutral-900/90 p-4 rounded-2xl border border-neutral-800 leading-relaxed text-xs sm:text-sm">
-                      {activeFunnel.primary_text}
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-neutral-400">Call to Action:</span>
-                    <span className="px-4 py-1.5 bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold rounded-xl text-xs shadow-lg shadow-rose-950/50">
-                      {activeFunnel.cta}
+                    <span className="text-[11px] text-neutral-500">
+                      🎯 <strong>Fungsi Psikologis:</strong> Menghentikan scroll jempol audiens di TikTok/Reels dengan stimulus visual makanan panas dan kelezatan instan.
                     </span>
                   </div>
 
-                  {/* Video Script 15s */}
+                  {/* Sub-Specialist 3B: Headline & PAS Body Copywriter */}
+                  <div className="p-5 rounded-3xl bg-neutral-900/80 border border-neutral-800 flex flex-col gap-4 shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black font-mono">
+                          3B
+                        </span>
+                        <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                          Sub-Spesialis 3B: Conversion Copywriter (Formula Problem - Agitate - Solution)
+                        </h4>
+                      </div>
+                      <button
+                        onClick={() => handleCopy(`${activeFunnel.headline}\n\n${activeFunnel.primary_text}`, 'copy_3b')}
+                        className="text-xs text-neutral-400 hover:text-rose-400 font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        {copiedKey === 'copy_3b' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>Salin Teks Lengkap</span>
+                      </button>
+                    </div>
+
+                    {/* Headline */}
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                        Headline Pemikat:
+                      </span>
+                      <div className="text-base font-black text-white bg-neutral-950 p-4 rounded-2xl border border-neutral-800 font-heading">
+                        {activeFunnel.headline}
+                      </div>
+                    </div>
+
+                    {/* Caption */}
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 block mb-1">
+                        Body Caption (PAS Framework):
+                      </span>
+                      <div className="text-neutral-300 bg-neutral-950 p-4 rounded-2xl border border-neutral-800 leading-relaxed text-xs sm:text-sm">
+                        {activeFunnel.primary_text}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sub-Specialist 3C & 3D Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Sub-Specialist 3C: Keywords & Hashtags */}
+                    <div className="p-5 rounded-3xl bg-neutral-900/80 border border-neutral-800 flex flex-col gap-3 shadow-xl">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black font-mono">
+                            3C
+                          </span>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                            Sub-Spesialis 3C: Keyword & FYP SEO
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {['#SambalViral', '#KulinerPedas', '#SambalCumiTAHRA', '#LaukPraktis', '#MakanEnakDiRumah', '#RacunTikTok'].map((tag) => (
+                          <span key={tag} className="px-3 py-1 bg-neutral-950 text-rose-400 border border-neutral-800 rounded-xl text-xs font-mono font-bold">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-neutral-500 leading-relaxed mt-1">
+                        Tagar dioptimalkan untuk memicu rekomendasi algoritma FYP TikTok dan pencarian kata kunci e-commerce.
+                      </p>
+                    </div>
+
+                    {/* Sub-Specialist 3D: CTA & Urgency */}
+                    <div className="p-5 rounded-3xl bg-neutral-900/80 border border-neutral-800 flex flex-col gap-3 shadow-xl">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-black font-mono">
+                            3D
+                          </span>
+                          <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                            Sub-Spesialis 3D: Call to Action (Urgency)
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-neutral-950 rounded-2xl border border-neutral-800 flex flex-col gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500">Tombol Aksi Persuasif:</span>
+                        <div className="px-4 py-2 bg-gradient-to-r from-rose-600 to-red-600 text-white font-black rounded-xl text-xs text-center shadow-lg shadow-rose-950/50">
+                          {activeFunnel.cta}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-neutral-500 leading-relaxed">
+                        Menggunakan psikologi <em>Fear of Missing Out (FOMO)</em> untuk mempercepat keputusan checkout pembeli.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 15-Second Video Production Storyboard */}
                   {agent3.video_script && (
-                    <div className="pt-4 border-t border-neutral-800 flex flex-col gap-3">
+                    <div className="p-5 rounded-3xl bg-neutral-900/90 border border-neutral-800 flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
                           <Video className="w-4 h-4" />
-                          Naskah Video 15 Detik ({activeFunnel.label})
+                          Storyboard Naskah Video 15 Detik ({activeFunnel.label})
                         </span>
                         <button
                           onClick={() =>
@@ -1001,19 +1081,19 @@ export default function CampaignDetail() {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="p-4 bg-neutral-900/90 rounded-2xl border border-neutral-800">
+                        <div className="p-4 bg-neutral-950 rounded-2xl border border-neutral-800">
                           <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">
                             Detik 0-3 (Hook Visual):
                           </span>
                           <p className="text-neutral-300 text-xs leading-relaxed">{activeFunnel.video_hook}</p>
                         </div>
-                        <div className="p-4 bg-neutral-900/90 rounded-2xl border border-neutral-800">
+                        <div className="p-4 bg-neutral-950 rounded-2xl border border-neutral-800">
                           <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">
                             Detik 3-10 (Body / Solusi):
                           </span>
                           <p className="text-neutral-300 text-xs leading-relaxed">{agent3.video_script.body_3_10s}</p>
                         </div>
-                        <div className="p-4 bg-neutral-900/90 rounded-2xl border border-neutral-800">
+                        <div className="p-4 bg-neutral-950 rounded-2xl border border-neutral-800">
                           <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">
                             Detik 10-15 (Call-to-Action):
                           </span>
