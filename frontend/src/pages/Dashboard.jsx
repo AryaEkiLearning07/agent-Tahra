@@ -21,7 +21,7 @@ import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/Card';
 import { StatCard } from '../components/ui/StatCard';
 import { Badge, StatusBadge } from '../components/ui/Badge';
 import { CampaignCardSkeleton } from '../components/ui/Skeleton';
@@ -44,9 +44,10 @@ export default function Dashboard() {
       setIsLoading(true);
       try {
         const data = await getCampaigns();
-        setCampaigns(data);
+        setCampaigns(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to load campaigns:', err);
+        setCampaigns([]);
       } finally {
         setIsLoading(false);
       }
@@ -54,6 +55,7 @@ export default function Dashboard() {
     loadData();
   }, []);
 
+  const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
   const platforms = ['All', 'TikTok', 'Instagram', 'Facebook'];
   const statusTabs = [
     { key: 'All', label: 'Semua Status' },
@@ -62,7 +64,8 @@ export default function Dashboard() {
     { key: 'Veto', label: '🛡️ Terproteksi' },
   ];
 
-  const filteredCampaigns = campaigns.filter((c) => {
+  const filteredCampaigns = safeCampaigns.filter((c) => {
+    if (!c) return false;
     const matchesSearch = c.product_name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -80,16 +83,16 @@ export default function Dashboard() {
     return matchesSearch && matchesPlatform && matchesStatus;
   });
 
-  const runningCount = campaigns.filter(
-    (c) => c.status?.toLowerCase() === 'running' || c.status?.toLowerCase() === 'aktif'
+  const runningCount = safeCampaigns.filter(
+    (c) => c && (c.status?.toLowerCase() === 'running' || c.status?.toLowerCase() === 'aktif')
   ).length;
 
-  const readyCount = campaigns.filter(
-    (c) => c.status?.toLowerCase() === 'ready' || c.status?.toLowerCase() === 'completed'
+  const readyCount = safeCampaigns.filter(
+    (c) => c && (c.status?.toLowerCase() === 'ready' || c.status?.toLowerCase() === 'completed')
   ).length;
 
-  const vetoCount = campaigns.filter(
-    (c) => c.status?.toLowerCase() === 'veto'
+  const vetoCount = safeCampaigns.filter(
+    (c) => c && c.status?.toLowerCase() === 'veto'
   ).length;
 
   const platformIcons = {
@@ -140,17 +143,17 @@ export default function Dashboard() {
             variant="outline"
             size="sm"
             onClick={() => navigate('/new')}
-            className="shrink-0 text-xs h-8"
+            className="shrink-0 text-xs"
           >
-            Mulai Uji Produk Baru →
+            Uji Produk Baru →
           </Button>
         </div>
 
-        {/* Metric Stats Cards */}
+        {/* Top 4 KPI Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
           <StatCard
             title="Total Produk Diuji"
-            value={campaigns.length}
+            value={safeCampaigns.length}
             subtitle="Diuji oleh 5 Multi-Agent"
             icon={<Layers className="w-5 h-5" />}
             isLoading={isLoading}
@@ -203,7 +206,7 @@ export default function Dashboard() {
                 <button
                   key={tab.key}
                   onClick={() => setSelectedStatus(tab.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                     selectedStatus === tab.key
                       ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm'
                       : 'text-neutral-400 hover:text-white bg-neutral-900/60 border border-transparent'
@@ -225,13 +228,13 @@ export default function Dashboard() {
                 <button
                   key={p}
                   onClick={() => setSelectedPlatform(p)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all whitespace-nowrap ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer ${
                     selectedPlatform === p
                       ? 'bg-neutral-800 text-white border border-neutral-700'
                       : 'text-neutral-500 hover:text-neutral-300'
                   }`}
                 >
-                  {p === 'All' ? 'Semua Platform' : p}
+                  {p}
                 </button>
               ))}
             </div>
@@ -247,18 +250,19 @@ export default function Dashboard() {
           </div>
         ) : filteredCampaigns.length === 0 ? (
           <EmptyState
-            title="Tidak Ada Kampanye yang Sesuai"
+            title="Belum Ada Kampanye"
             description={
               searchQuery || selectedPlatform !== 'All' || selectedStatus !== 'All'
                 ? 'Tidak ada produk yang cocok dengan filter aktif. Coba ubah pencarian atau tab status.'
                 : 'Mulai buat strategi periklanan pertama Anda menggunakan 5 Sub-Agent AI otonom.'
             }
-            actionLabel="Uji Produk Pertama"
+            actionLabel="Uji Produk Pertama Sekarang"
             onAction={() => navigate('/new')}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCampaigns.map((c, idx) => {
+              if (!c) return null;
               const platformKey = (c.platform || 'tiktok').toLowerCase();
               const icon = platformIcons[platformKey] || '📢';
               const roasDisplay =
@@ -275,7 +279,7 @@ export default function Dashboard() {
                   onClick={() =>
                     navigate(`/campaign/${c.id || idx}`, { state: { campaign: c } })
                   }
-                  className="flex flex-col justify-between"
+                  className="flex flex-col justify-between cursor-pointer"
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -286,7 +290,7 @@ export default function Dashboard() {
                     </div>
 
                     <CardTitle className="text-base line-clamp-1 group-hover:text-rose-400 transition-colors">
-                      {c.product_name}
+                      {c.product_name || 'Produk UMKM'}
                     </CardTitle>
 
                     <CardDescription>
