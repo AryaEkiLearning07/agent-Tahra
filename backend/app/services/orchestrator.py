@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Dict, Any
 from app.services.llm_gateway import llm_gateway
@@ -174,17 +175,17 @@ class MultiAgentOrchestrator:
             )
 
         # =========================================================================
-        # SUB-AGENT 3: Creative Director & Copywriter (The Wordsmith)
+        # SUB-AGENT 3 & 4: CONCURRENT CREATIVE EXECUTION (PARALLEL LLM REASONING)
         # =========================================================================
         agent3_system = """
-        You are Sub-Agent 3 (The Wordsmith), an Award-winning Copywriter specializing in Indonesian UMKM ads.
+        You are Sub-Agent 3 (The Wordsmith), an Award-winning Copywriter specializing in Indonesian ads.
         TASK: Craft persuasive ad copywriting based on Agent 2 format decision.
         RULES:
         - headline: Max 10 words, punchy, high-converting in Bahasa Indonesia.
         - primary_text: PAS Framework (Problem - Agitate - Solution) in Bahasa Indonesia.
         - cta: Strong actionable call-to-action in Bahasa Indonesia.
         - video_script: Detailed 15-second script (hook_0_3s, body_3_10s, cta_10_15s).
-        - data_foundation: Explain why this psychological trigger (PAS) was chosen based on target pain points.
+        - data_foundation: Concise psychological explanation.
         OUTPUT: JSON ONLY matching schema.
         Schema:
         {
@@ -204,27 +205,13 @@ class MultiAgentOrchestrator:
             f"Target: {agent1_res.target_demography}"
         )
 
-        raw_agent3 = await llm_gateway.execute_structured_agent(
-            agent_name="Sub-Agent 3 (The Wordsmith)",
-            system_prompt=agent3_system,
-            user_message=agent3_user,
-            temperature=0.7
-        )
-        if "data_foundation" not in raw_agent3:
-            raw_agent3["data_foundation"] = f"Hook visual 3 detik pertama didesain khusus untuk menekan Drop-off Rate di platform {agent2_res.platform} dengan langsung mengekspos pain point utama."
-
-        agent3_res = Agent3CopywriterOutput(**raw_agent3)
-
-        # =========================================================================
-        # SUB-AGENT 4: Art Director & Visual Designer (The Creator)
-        # =========================================================================
         agent4_system = """
         You are Sub-Agent 4 (The Creator), a World-class Art Director & Visual Prompt Designer.
         TASK: Formulate an ultra-detailed English prompt for Text-to-Image AI generators (Midjourney/DALL-E).
         RULES:
         - Respect the exact aspect ratio from Agent 2 (e.g. 9:16 or 1:1).
-        - Match visual mood with Agent 3 copywriting tone.
-        - data_foundation: State the visual psychology principle (lighting, color contrast, CTR benchmark) applied.
+        - Commercial lighting, macro lens details, 8K resolution.
+        - data_foundation: Visual psychology principle applied.
         OUTPUT: JSON ONLY matching schema.
         Schema:
         {
@@ -238,20 +225,32 @@ class MultiAgentOrchestrator:
         agent4_user = (
             f"Product: {agent1_res.product_name}\n"
             f"Aspect Ratio: {agent2_res.aspect_ratio}\n"
-            f"Headline: {agent3_res.headline}\n"
             f"Platform: {agent2_res.platform}\n"
             f"USP: {agent1_res.usp}"
         )
 
-        raw_agent4 = await llm_gateway.execute_structured_agent(
-            agent_name="Sub-Agent 4 (The Creator)",
-            system_prompt=agent4_system,
-            user_message=agent4_user,
-            temperature=0.4
+        # Run Agent 3 & Agent 4 simultaneously to minimize roundtrip latency
+        raw_agent3, raw_agent4 = await asyncio.gather(
+            llm_gateway.execute_structured_agent(
+                agent_name="Sub-Agent 3 (The Wordsmith)",
+                system_prompt=agent3_system,
+                user_message=agent3_user,
+                temperature=0.7
+            ),
+            llm_gateway.execute_structured_agent(
+                agent_name="Sub-Agent 4 (The Creator)",
+                system_prompt=agent4_system,
+                user_message=agent4_user,
+                temperature=0.4
+            )
         )
+
+        if "data_foundation" not in raw_agent3:
+            raw_agent3["data_foundation"] = f"Hook visual 3 detik pertama didesain khusus untuk menekan Drop-off Rate di platform {agent2_res.platform} dengan langsung mengekspos pain point utama."
+        agent3_res = Agent3CopywriterOutput(**raw_agent3)
+
         if "data_foundation" not in raw_agent4:
             raw_agent4["data_foundation"] = f"Komposisi {raw_agent4.get('recommended_composition', 'Centered')} dan rasio {agent2_res.aspect_ratio} terbukti secara empiris meningkatkan CTR iklan hingga 35% dibandingkan visual non-staging."
-
         agent4_res = Agent4VisualOutput(**raw_agent4)
 
         # =========================================================================

@@ -2,24 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles,
-  DollarSign,
-  TrendingUp,
-  ShieldCheck,
-  Target,
   ArrowRight,
   ShoppingBag,
-  MessageCircle,
-  Globe,
-  CheckCircle2,
   AlertCircle,
-  Layers,
+  HelpCircle,
+  CheckCircle2,
+  Wand2,
 } from 'lucide-react';
 import { Navbar } from '../components/layout/Navbar';
 import { PageContainer } from '../components/layout/PageContainer';
 import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { formatRp } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../utils/cn';
 
@@ -39,63 +32,64 @@ export default function NewCampaign() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Clean, Direct Form State
-  const [productName, setProductName] = useState('');
-  const [kategori, setKategori] = useState('Fisik');
-  const [hargaJual, setHargaJual] = useState('');
-  const [hpp, setHpp] = useState('');
-  const [budgetHarian, setBudgetHarian] = useState(100000);
-  const [destinationType, setDestinationType] = useState('whatsapp'); // 'whatsapp' | 'website'
-  const [destinationValue, setDestinationValue] = useState('');
-  const [errors, setErrors] = useState({});
+  // Clean, Single Natural Language Input State
+  const [productDescription, setProductDescription] = useState('');
+  const [error, setError] = useState('');
 
-  // Dynamic Margin Calculation
-  const hargaNum = Number(hargaJual) || 0;
-  const hppNum = Number(hpp) || 0;
-  const marginVal = Math.max(0, hargaNum - hppNum);
-  const marginPct = hargaNum > 0 ? ((marginVal / hargaNum) * 100).toFixed(1) : 0;
-  const isHealthyMargin = Number(marginPct) >= 20;
+  // Quick Preset Examples for Instant Testing
+  const presets = [
+    {
+      label: '🛠️ Jasa Service AC',
+      text: 'Jasa Service AC di Mojokerto. Melayani cuci AC, perbaikan bocor, dan tambah freon bergaransi 30 hari. Tarif mulai Rp 75.000, respon cepat 24 jam.',
+    },
+    {
+      label: '👟 Cuci Sepatu Sneakers',
+      text: 'Jasa Cuci Sepatu Sneakers di Yogyakarta. Paket Deep Clean Express 24 Jam selesai tanpa bau apek, harga Rp 35.000 per pasang. Target mahasiswa dan pekerja kantor.',
+    },
+    {
+      label: '🌶️ Sambal Kemasan UMKM',
+      text: 'Sambal Cumi Asin Pedas Kemasan Pouch 150g. Menggunakan cumi segar tanpa pengawet kimia, tahan 3 bulan, harga Rp 28.000 per pouch.',
+    },
+    {
+      label: '📸 Jasa Foto Produk',
+      text: 'Jasa Foto Produk Makanan & Minuman Cafe di Jakarta. Paket Foto Menu & Video Reels Rp 350.000 per sesi.',
+    },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newErrors = {};
-
-    if (!productName.trim()) {
-      newErrors.product_name = 'Nama produk / jasa wajib diisi.';
-    }
-    if (!hargaJual || hargaNum <= 0) {
-      newErrors.harga_jual = 'Harga jual wajib diisi dan lebih dari 0.';
-    }
-    if (!hpp || hppNum <= 0) {
-      newErrors.hpp = 'Modal / HPP wajib diisi.';
-    } else if (hppNum >= hargaNum) {
-      newErrors.hpp = 'Modal (HPP) tidak boleh lebih besar atau sama dengan harga jual.';
-    }
-    if (!budgetHarian || budgetHarian < 20000) {
-      newErrors.budget_harian = 'Minimal budget iklan harian adalah Rp 20.000.';
-    }
-    if (!destinationValue.trim()) {
-      newErrors.destination_value = destinationType === 'whatsapp' ? 'Nomor WhatsApp admin wajib diisi.' : 'Link website / marketplace wajib diisi.';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!productDescription.trim() || productDescription.trim().length < 5) {
+      setError('Mohon tuliskan deskripsi produk atau jasa yang ingin Anda iklankan minimal 5 karakter.');
       return;
     }
 
-    setErrors({});
+    setError('');
+
+    // Extract basic title & prices if available or set standard defaults
+    const rawText = productDescription.trim();
+    const cleanTitle = rawText.split(/[,.\n]/)[0].slice(0, 50).trim() || 'Kampanye Usaha';
+    
+    // Auto-detect price if mentioned (e.g. 75.000 or 75rb or 35000)
+    const priceMatch = rawText.match(/(?:rp\s*|\b)(\d{1,3}(?:\.\d{3})+|\d{4,8})\b/i);
+    const rbMatch = rawText.match(/(\d+)\s*(?:rb|k|ribu)/i);
+    
+    let detectedPrice = 50000;
+    if (priceMatch) {
+      detectedPrice = parseInt(priceMatch[1].replace(/\./g, ''), 10);
+    } else if (rbMatch) {
+      detectedPrice = parseInt(rbMatch[1], 10) * 1000;
+    }
+    const detectedHpp = Math.max(10000, Math.round(detectedPrice * 0.4));
 
     const newId = Date.now();
     const initialCampaign = {
       id: newId,
-      product_name: productName.trim(),
+      product_name: rawText,
       platform: 'TikTok',
-      budget: Number(budgetHarian),
-      harga_jual: hargaNum,
-      hpp: hppNum,
-      kategori: kategori,
-      destination_type: destinationType,
-      destination_value: destinationValue.trim(),
+      budget: 100000,
+      harga_jual: detectedPrice,
+      hpp: detectedHpp,
+      kategori: rawText.toLowerCase().includes('jasa') ? 'Jasa' : 'Fisik',
       status: 'Running',
       created_at: new Date().toISOString(),
     };
@@ -104,11 +98,11 @@ export default function NewCampaign() {
       state: {
         campaign: initialCampaign,
         campaignInput: {
-          product_name: productName.trim(),
-          harga_jual: hargaNum,
-          hpp: hppNum,
-          budget_harian: Number(budgetHarian),
-          kategori: kategori,
+          product_name: rawText,
+          harga_jual: detectedPrice,
+          hpp: detectedHpp,
+          budget_harian: 100000,
+          kategori: rawText.toLowerCase().includes('jasa') ? 'Jasa' : 'Fisik',
           platform: 'TikTok',
         },
         isLiveGenerating: true,
@@ -121,208 +115,78 @@ export default function NewCampaign() {
       <Navbar />
 
       <PageContainer
-        badge="Formulir Kampanye Baru"
-        title="Buat Strategi Iklan AI"
-        description="Masukkan informasi produk usaha Anda. 5 Sub-Agent AI akan membedah pasar secara empiris dan menyusun strategi siap pakai."
+        badge="TAHRA AI Auto-Strategist"
+        title="Apa yang Ingin Anda Iklankan?"
+        description="Tuliskan produk fisik, jasa, atau usaha Anda secara bebas. 5 Sub-Agent AI akan langsung membedah pasar dan merancang strateginya secara otonom."
         backUrl="/dashboard"
         backLabel="Kembali ke Dashboard"
       >
         <div className="max-w-3xl mx-auto w-full">
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-neutral-950/90 border border-neutral-800/90 shadow-2xl backdrop-blur-2xl flex flex-col gap-7">
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 rounded-3xl bg-neutral-950/90 border border-neutral-800/90 shadow-2xl backdrop-blur-2xl flex flex-col gap-6">
             
-            {/* 1. NAMA PRODUK */}
+            {/* PRESET CHIPS */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-rose-500" />
-                1. Nama Produk atau Layanan Usaha:
+              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                Contoh Cepat Siap Pakai (Klik untuk Mencoba):
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {presets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setProductDescription(preset.text);
+                      setError('');
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-rose-500 hover:bg-neutral-800/80 text-neutral-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* MAIN NATURAL PROMPT INPUT */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-black uppercase tracking-wider text-white flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-rose-500" />
+                  Ceritakan Produk / Jasa / Usaha Anda:
+                </span>
+                <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                  Bebas Format & Tanpa Rumus
+                </span>
               </label>
-              <input
-                type="text"
-                placeholder="Contoh: Jasa Cuci Sepatu di Yogyakarta / Sambal Cumi Asin 150g"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
+
+              <textarea
+                rows={5}
+                placeholder="Contoh: Jasa Service AC di Mojokerto, melayani cuci AC, isi freon, dan perbaikan bocor bergaransi. Tarif mulai Rp 75.000, bisa panggilan ke rumah..."
+                value={productDescription}
+                onChange={(e) => {
+                  setProductDescription(e.target.value);
+                  if (error) setError('');
+                }}
                 className={cn(
-                  'w-full bg-neutral-900 text-white text-sm rounded-2xl px-4 py-3.5 border focus:outline-none transition-colors',
-                  errors.product_name ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
+                  'w-full bg-neutral-900 text-white text-sm rounded-2xl p-4 border focus:outline-none transition-colors leading-relaxed placeholder:text-neutral-600 font-medium resize-none',
+                  error ? 'border-red-500 ring-2 ring-red-500/20' : 'border-neutral-800 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
                 )}
               />
-              {errors.product_name && (
-                <span className="text-[11px] text-red-400 flex items-center gap-1 mt-0.5">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                  {errors.product_name}
+
+              {error && (
+                <span className="text-xs text-red-400 flex items-center gap-1.5 mt-1 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {error}
                 </span>
               )}
             </div>
 
-            {/* 2. KATEGORI USAHA */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-rose-500" />
-                2. Kategori Produk:
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: 'Fisik', label: '📦 Produk Fisik / F&B' },
-                  { id: 'Jasa', label: '🛠️ Jasa / Layanan' },
-                  { id: 'Digital', label: '💻 Digital / Edukasi' },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setKategori(item.id)}
-                    className={cn(
-                      'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer text-center',
-                      kategori === item.id
-                        ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
-                        : 'bg-neutral-900/80 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700'
-                    )}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 3. HARGA JUAL & MODAL (HPP) */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-rose-500" />
-                3. Harga Jual & Modal Pokok (HPP):
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] text-neutral-400 font-medium">Harga Jual ke Pembeli (Rp):</span>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 35000"
-                    value={hargaJual}
-                    onChange={(e) => setHargaJual(e.target.value)}
-                    className={cn(
-                      'w-full bg-neutral-900 text-white font-mono text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors',
-                      errors.harga_jual ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
-                    )}
-                  />
-                  {errors.harga_jual && (
-                    <span className="text-[11px] text-red-400">{errors.harga_jual}</span>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] text-neutral-400 font-medium">Modal / HPP per Produk (Rp):</span>
-                  <input
-                    type="number"
-                    placeholder="Contoh: 15000"
-                    value={hpp}
-                    onChange={(e) => setHpp(e.target.value)}
-                    className={cn(
-                      'w-full bg-neutral-900 text-white font-mono text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors',
-                      errors.hpp ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
-                    )}
-                  />
-                  {errors.hpp && (
-                    <span className="text-[11px] text-red-400">{errors.hpp}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Real-time Margin Info Card */}
-              {hargaNum > 0 && hppNum > 0 && hppNum < hargaNum && (
-                <div className="mt-2 p-3.5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-between text-xs font-mono">
-                  <span className="text-neutral-400">
-                    Laba Bersih: <strong className="text-white font-bold">{formatRp(marginVal)}</strong> per transaksi
-                  </span>
-                  <span className={cn('px-2.5 py-0.5 rounded-lg font-black', isHealthyMargin ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-rose-950 text-rose-400 border border-rose-500/40')}>
-                    Margin: {marginPct}% {isHealthyMargin ? '✅ SEHAT' : '⚠️ TIPIS'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* 4. BUDGET IKLAN HARIAN */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-rose-500" />
-                4. Rencana Budget Iklan Harian:
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { value: 50000, label: 'Rp 50.000 / hari', note: 'Uji Coba Awal' },
-                  { value: 100000, label: 'Rp 100.000 / hari', note: 'Standar Optimal' },
-                  { value: 200000, label: 'Rp 200.000 / hari', note: 'Skala Cepat' },
-                ].map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setBudgetHarian(item.value)}
-                    className={cn(
-                      'p-3.5 rounded-2xl border flex flex-col items-center gap-1 transition-all cursor-pointer',
-                      budgetHarian === item.value
-                        ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
-                        : 'bg-neutral-900/80 text-neutral-300 border-neutral-800 hover:text-white hover:border-neutral-700'
-                    )}
-                  >
-                    <span className="font-mono font-black text-xs sm:text-sm">{formatRp(item.value)}</span>
-                    <span className="text-[10px] text-neutral-400 font-normal">{item.note}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. TUJUAN KONTAK / CLOSING */}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
-                <Target className="w-4 h-4 text-rose-500" />
-                5. Tujuan Pembeli Menghubungi / Membeli:
-              </label>
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDestinationType('whatsapp');
-                    setDestinationValue('');
-                  }}
-                  className={cn(
-                    'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2',
-                    destinationType === 'whatsapp'
-                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-950/50'
-                      : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
-                  )}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp Admin
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDestinationType('website');
-                    setDestinationValue('');
-                  }}
-                  className={cn(
-                    'p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2',
-                    destinationType === 'website'
-                      ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-950/50'
-                      : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
-                  )}
-                >
-                  <Globe className="w-4 h-4" />
-                  Website / Marketplace
-                </button>
-              </div>
-
-              <input
-                type="text"
-                placeholder={destinationType === 'whatsapp' ? 'Contoh: 081234567890 (Nomor WA Admin)' : 'Contoh: https://shopee.co.id/tokosaya'}
-                value={destinationValue}
-                onChange={(e) => setDestinationValue(e.target.value)}
-                className={cn(
-                  'w-full bg-neutral-900 text-white text-sm rounded-2xl px-4 py-3 border focus:outline-none transition-colors font-mono',
-                  errors.destination_value ? 'border-red-500' : 'border-neutral-800 focus:border-rose-500'
-                )}
-              />
-              {errors.destination_value && (
-                <span className="text-[11px] text-red-400">{errors.destination_value}</span>
-              )}
+            {/* SIMPLE GUIDE / PROMISE */}
+            <div className="p-4 rounded-2xl bg-neutral-900/50 border border-neutral-800/80 flex items-start gap-3 text-xs text-neutral-400">
+              <Wand2 className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                <strong className="text-neutral-200">5 Sub-Agent AI Bekerja Otomatis:</strong> Anda tidak perlu pusing menghitung HPP atau memilih saluran iklan. AI akan langsung membedah keluhan kompetitor, target audiens, naskah video, dan kalkulasi profitnya.
+              </p>
             </div>
 
             {/* SUBMIT BUTTON */}
@@ -332,9 +196,9 @@ export default function NewCampaign() {
               size="lg"
               isFullWidth
               rightIcon={<ArrowRight className="w-4 h-4 stroke-[3]" />}
-              className="mt-3 text-sm font-black shadow-xl shadow-rose-950/70 py-4"
+              className="py-4 text-sm font-black shadow-xl shadow-rose-950/80"
             >
-              Jalankan 5 Sub-Agent AI Sekarang →
+              🚀 Analisis Pasar & Rancang Iklan (5 Sub-Agent AI) →
             </Button>
           </form>
         </div>
