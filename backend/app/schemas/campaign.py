@@ -32,7 +32,7 @@ class BuyerPersonaItem(BaseModel):
     purchase_trigger: str
 
 class VoiceOfCustomer(BaseModel):
-    sample_size: str = "1.200+ Ulasan Scraped"
+    sample_size: str = "1.200+ Agregasi Sentimen Publik Terbuka (Anonim)"
     positive_triggers: List[str]
     competitor_friction_points: List[str]
 

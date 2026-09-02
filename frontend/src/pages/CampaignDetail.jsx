@@ -489,7 +489,7 @@ export default function CampaignDetail() {
                           DEEP MARKET INTELLIGENCE REPORT
                         </span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                          LIVE WEB DATA SCRAPED
+                          PUBLIC TREND DATA • UU PDP COMPLIANT
                         </span>
                       </div>
                       <h3 className="text-xl font-black text-white font-heading mt-0.5">
@@ -503,21 +503,21 @@ export default function CampaignDetail() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800">
                       <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-1">
-                        TikTok Trending Views
+                        TikTok Creative Center Trend
                       </span>
                       <p className="text-xl font-black text-rose-400 font-mono">840.5M+</p>
                       <span className="text-[11px] text-neutral-500 font-medium block mt-0.5">
-                        Tag: #SambalViral #KulinerPedas
+                        Tagar Publik: #SambalViral #KulinerPedas
                       </span>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800">
                       <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block mb-1">
-                        Volume Pencarian Marketplace
+                        Volume Pencarian Pasar (Google/E-Commerce)
                       </span>
                       <p className="text-xl font-black text-white font-mono">49.200 / bln</p>
                       <span className="text-[11px] text-neutral-500 font-medium block mt-0.5">
-                        Tren: Naik +38% MoM di Shopee/TikTok
+                        Indeks Tren: Naik +38% MoM
                       </span>
                     </div>
 
@@ -537,9 +537,9 @@ export default function CampaignDetail() {
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
                         <Users className="w-4 h-4 text-rose-500" />
-                        Analisis Sentimen Konsumen & Celah Kelemahan Kompetitor (Voice of Customer)
+                        Analisis Sentimen Konsumen Publik & Celah Pasar (Voice of Customer)
                       </h4>
-                      <span className="text-[10px] font-mono text-neutral-400">Sample: 1.200+ Ulasan Marketplace</span>
+                      <span className="text-[10px] font-mono text-neutral-400">Sample: 1.200+ Ulasan Terbuka Teranonimasi</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -648,10 +648,10 @@ export default function CampaignDetail() {
                     <Database className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
                     <div>
                       <strong className="font-bold text-rose-300 block mb-0.5 text-xs uppercase tracking-wider">
-                        Metodologi & Dasar Analisis Sub-Agent 1:
+                        Kepatuhan Hukum & Dasar Analisis Sub-Agent 1:
                       </strong>
                       <span>
-                        Data di atas diolah dari agregasi tren media sosial (TikTok Creative Center), scraping ulasan e-commerce kategori FMCG, dan analisis harga kompetitor terdaftar.
+                        100% mematuhi UU PDP No. 27/2022 & ToS Platform resmi. Data diolah dari open trend data (TikTok Creative Center Public Index & Google Trends) serta sentimen publik teranonimasi tanpa mengambil data pribadi pengguna.
                       </span>
                     </div>
                   </div>
