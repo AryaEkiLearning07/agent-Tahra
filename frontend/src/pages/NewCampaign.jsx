@@ -282,21 +282,17 @@ export default function NewCampaign() {
                     ]}
                   />
 
-                  <Select
-                    label="Preferensi Channel Iklan"
-                    id="platform"
-                    name="platform"
-                    value={form.platform}
-                    onChange={(e) =>
-                      setForm({ ...form, platform: e.target.value })
-                    }
-                    options={[
-                      { value: 'TikTok', label: '🎵 TikTok Ads (Format 9:16 Vertikal)' },
-                      { value: 'Instagram', label: '📸 Instagram Ads (Feed & Reels)' },
-                      { value: 'Facebook', label: '📢 Facebook Ads (Traffic & Sales)' },
-                      { value: 'Google', label: '🔍 Google Search Ads (High Intent)' },
-                    ]}
-                  />
+                  <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-neutral-300">Channel & Format Iklan</span>
+                      <span className="text-[10px] font-black uppercase text-rose-400 font-mono px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">
+                        AI OTONOM
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 leading-snug">
+                      🤖 Ditentukan otomatis oleh Sub-Agent 1 & 2 (TikTok 9:16 / Reels / Google) berdasarkan analisis demografi pasar.
+                    </p>
+                  </div>
                 </div>
 
                 {/* 2. Destination Link Selector */}
