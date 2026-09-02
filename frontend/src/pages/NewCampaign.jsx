@@ -185,6 +185,7 @@ export default function NewCampaign() {
 
   // Live Unit Economics Calculation
   const marginData = calculateMargin(form.harga_jual, form.hpp);
+  const hasValues = Number(form.harga_jual) > 0 && Number(form.hpp) > 0;
   const budgetNum = Number(form.budget_harian) || 100000;
   const adSpendPure = Math.round(budgetNum * 0.9);
   const aiFee = Math.round(budgetNum * 0.1);
