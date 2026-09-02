@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail, User, Building, Sparkles } from 'lucide-react';
+import { ArrowRight, Lock, Mail, User, Building, Phone, Sparkles } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -17,8 +17,9 @@ export default function Login() {
   const [form, setForm] = useState({
     name: '',
     company: '',
-    email: 'demo@tahra.ai',
-    password: 'password123',
+    whatsapp: '',
+    email: '',
+    password: '',
   });
 
   const handleSubmit = (e) => {
@@ -33,15 +34,23 @@ export default function Login() {
         return;
       }
 
+      if (isSignUp && (!form.name || !form.company)) {
+        setError('Mohon lengkapi Nama Lengkap dan Nama Brand UMKM Anda.');
+        setLoading(false);
+        return;
+      }
+
+      // Save Real User Profile
       login({
-        name: form.name || (isSignUp ? 'Ahmad Rasyid' : 'Owner TAHRA'),
+        name: form.name || 'Owner UMKM',
         email: form.email,
-        company: form.company || 'UMKM Maju Nusantara',
+        company: form.company || 'Brand UMKM Nusantara',
+        whatsapp: form.whatsapp || '081289123456',
       });
 
       setLoading(false);
       navigate('/dashboard');
-    }, 600);
+    }, 500);
   };
 
   return (
@@ -58,18 +67,18 @@ export default function Login() {
           >
             T
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
-            {isSignUp ? 'Daftar Akun Baru' : 'Selamat Datang Kembali'}
+          <h1 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight font-heading">
+            {isSignUp ? 'Daftar Akun Baru' : 'Masuk ke Platform'}
           </h1>
           <p className="text-xs sm:text-sm text-neutral-400 mt-1 font-medium">
             {isSignUp
-              ? 'Mulai simulasi kampanye iklan otomatis tanpa risiko boncos'
-              : 'Akses dashboard orkestrasi kampanye TAHRA AI'}
+              ? 'Daftarkan bisnis UMKM Anda dan mulai otomatisasi periklanan dengan AI'
+              : 'Akses dashboard orkestrasi kampanye periklanan TAHRA AI'}
           </p>
         </div>
 
         <Card hasRedBar className="p-6 sm:p-8">
-          {/* Mode Switcher Tabs */}
+          {/* Clean Mode Switcher Tabs (Tanpa Tanda Kurung) */}
           <div className="grid grid-cols-2 gap-1 p-1 bg-neutral-900 rounded-xl mb-6 border border-neutral-800">
             <button
               type="button"
@@ -77,13 +86,13 @@ export default function Login() {
                 setIsSignUp(false);
                 setError('');
               }}
-              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 !isSignUp
-                  ? 'bg-rose-500 text-white shadow-md shadow-rose-950/40'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 font-black'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
-              Masuk (Sign In)
+              Masuk
             </button>
             <button
               type="button"
@@ -91,13 +100,13 @@ export default function Login() {
                 setIsSignUp(true);
                 setError('');
               }}
-              className={`py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 isSignUp
-                  ? 'bg-rose-500 text-white shadow-md shadow-rose-950/40'
+                  ? 'bg-rose-600 text-white shadow-md shadow-rose-950/40 font-black'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
-              Daftar (Sign Up)
+              Daftar
             </button>
           </div>
 
@@ -111,7 +120,7 @@ export default function Login() {
             {isSignUp && (
               <>
                 <Input
-                  label="Nama Lengkap"
+                  label="Nama Lengkap Pemilik"
                   id="name"
                   type="text"
                   required
@@ -122,7 +131,7 @@ export default function Login() {
                 />
 
                 <Input
-                  label="Nama Usaha / Brand UMKM"
+                  label="Nama Brand / Toko UMKM"
                   id="company"
                   type="text"
                   required
@@ -130,6 +139,16 @@ export default function Login() {
                   prefix={<Building className="w-4 h-4" />}
                   value={form.company}
                   onChange={(e) => setForm({ ...form, company: e.target.value })}
+                />
+
+                <Input
+                  label="Nomor WhatsApp Utama"
+                  id="whatsapp"
+                  type="text"
+                  placeholder="e.g. 081289123456"
+                  prefix={<Phone className="w-4 h-4" />}
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
                 />
               </>
             )}
@@ -146,7 +165,7 @@ export default function Login() {
             />
 
             <Input
-              label="Kata Sandi (Password)"
+              label="Kata Sandi"
               id="password"
               type="password"
               required
@@ -162,27 +181,20 @@ export default function Login() {
               size="lg"
               isFullWidth
               isLoading={loading}
-              loadingText="Memvalidasi Kredensial..."
+              loadingText={isSignUp ? 'Mendaftarkan Akun...' : 'Memvalidasi...'}
               rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="mt-2"
+              className="mt-2 text-xs font-black shadow-lg shadow-rose-950/50"
             >
               {isSignUp ? 'Daftar Sekarang' : 'Masuk ke Dashboard'}
             </Button>
           </form>
-
-          {/* Quick Demo hint */}
-          <div className="mt-6 pt-4 border-t border-neutral-900 text-center">
-            <p className="text-[11px] text-neutral-500 font-medium">
-              💡 Demo Mode Aktif: Klik langsung "Masuk" untuk eksplorasi tanpa ribet.
-            </p>
-          </div>
         </Card>
 
         {/* Back to home */}
         <div className="text-center mt-6">
           <button
             onClick={() => navigate('/')}
-            className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors"
+            className="text-xs font-semibold text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
           >
             ← Kembali ke Halaman Depan
           </button>
