@@ -205,21 +205,26 @@ const SEED_CAMPAIGNS = [
  */
 export async function getCampaigns() {
   try {
-    const res = await axios.get(`${EXPRESS_URL}/api/campaigns`, { timeout: 3000 });
+    const local = JSON.parse(localStorage.getItem('tahra_campaigns') || 'null');
+    if (local && Array.isArray(local) && local.length > 0) {
+      return local;
+    }
+  } catch (err) {
+    console.warn('LocalStorage parse warning:', err);
+  }
+
+  try {
+    const res = await axios.get(`${EXPRESS_URL}/api/campaigns`, { timeout: 1000 });
     if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+      localStorage.setItem('tahra_campaigns', JSON.stringify(res.data));
       return res.data;
     }
   } catch (err) {
-    console.warn('Express/MySQL backend unreachable, falling back to local state:', err.message);
+    // Graceful offline fallback
   }
 
-  // Fallback to localStorage + initial seeds
-  const local = JSON.parse(localStorage.getItem('tahra_campaigns') || 'null');
-  if (!local) {
-    localStorage.setItem('tahra_campaigns', JSON.stringify(SEED_CAMPAIGNS));
-    return SEED_CAMPAIGNS;
-  }
-  return local;
+  localStorage.setItem('tahra_campaigns', JSON.stringify(SEED_CAMPAIGNS));
+  return SEED_CAMPAIGNS;
 }
 
 /**
