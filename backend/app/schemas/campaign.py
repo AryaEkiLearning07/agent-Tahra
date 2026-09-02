@@ -2,20 +2,13 @@ from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 
 class CampaignCreate(BaseModel):
-    product_name: str = Field(..., min_length=2, max_length=255, description="Nama lengkap produk UMKM")
-    harga_jual: int = Field(..., gt=0, description="Harga jual produk ke konsumen")
-    hpp: int = Field(..., gt=0, description="Harga Pokok Penjualan / Modal per unit")
-    budget_harian: int = Field(..., ge=10000, description="Budget iklan harian dalam Rupiah")
-    kategori: Literal["Fisik", "Jasa", "Digital"] = Field(default="Fisik", description="Kategori produk")
+    product_name: str = Field(..., min_length=2, max_length=5000, description="Deskripsi atau nama produk UMKM")
+    harga_jual: Optional[int] = Field(default=50000, description="Harga jual produk ke konsumen")
+    hpp: Optional[int] = Field(default=20000, description="Harga Pokok Penjualan / Modal per unit")
+    budget_harian: Optional[int] = Field(default=100000, description="Budget iklan harian dalam Rupiah")
+    kategori: Optional[str] = Field(default="Fisik", description="Kategori produk")
     platform: Optional[str] = Field(default="TikTok", description="Preferensi platform awal")
 
-    @field_validator("hpp")
-    @classmethod
-    def validate_hpp_less_than_harga(cls, v, info):
-        harga = info.data.get("harga_jual")
-        if harga is not None and v >= harga:
-            raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
-        return v
 
 # --- STRICT EMPIRICAL SUB-AGENT 1 SCHEMAS (HIGH-LEVERAGE MARKET INTELLIGENCE) ---
 

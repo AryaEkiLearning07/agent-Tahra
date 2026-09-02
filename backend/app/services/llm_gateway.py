@@ -89,18 +89,29 @@ class LLMGateway:
                 logger.info(f"⚡ [CACHE HIT] {agent_name}")
                 return cached
 
-        # 2. Call LLM
+        # 2. Call LLM with automatic fallback
         logger.info(f"🤖 [LLM CALL] {agent_name} via {settings.LLM_MODEL}")
         try:
-            response = await self.client.chat.completions.create(
-                model=settings.LLM_MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
-                temperature=temperature,
-                response_format={"type": "json_object"},
-            )
+            try:
+                response = await self.client.chat.completions.create(
+                    model=settings.LLM_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message},
+                    ],
+                    temperature=temperature,
+                    response_format={"type": "json_object"},
+                )
+            except Exception as first_err:
+                logger.warning(f"⚠️ [JSON Mode Retry] Retrying without strict json_object: {first_err}")
+                response = await self.client.chat.completions.create(
+                    model=settings.LLM_MODEL,
+                    messages=[
+                        {"role": "system", "content": system_prompt + "\nIMPORTANT: Return valid parseable JSON only."},
+                        {"role": "user", "content": user_message},
+                    ],
+                    temperature=temperature,
+                )
 
             raw_content = response.choices[0].message.content or "{}"
             parsed = self._extract_json(raw_content)
