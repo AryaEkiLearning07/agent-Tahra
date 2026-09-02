@@ -136,32 +136,6 @@ export default function Dashboard() {
           </Button>
         }
       >
-        {/* Onboarding / Workflow Quick Guide Banner */}
-        <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/40 via-neutral-950/60 to-rose-950/30 border border-rose-500/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-md">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Cara Kerja 5 Sub-Agent TAHRA AI untuk Pemula
-              </h4>
-              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
-                Tidak perlu paham istilah teknis iklan! AI otomatis meriset pasar, memilihkan platform terbaik, menuliskan naskah video, dan melindungi modal Anda dari risiko rugi.
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCreateCampaignClick}
-            className="shrink-0 text-xs font-bold"
-          >
-            Uji Produk Baru →
-          </Button>
-        </div>
-
         {/* Top 4 KPI Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
@@ -232,23 +206,23 @@ export default function Dashboard() {
         </div>
 
         {/* ========================================================================= */}
-        {/* BAGIAN 1: KAMPANYE SEDANG BERJALAN (RUNNING / PROSES AI AKTIF) */}
+        {/* CARD PEMBUNGKUS 1: KAMPANYE SEDANG BERJALAN (LIVE RUNNING) */}
         {/* ========================================================================= */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between pb-3 mb-5 border-b border-neutral-800/80">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-                <PlayCircle className="w-4 h-4" />
+        <div className="p-6 sm:p-7 rounded-3xl bg-neutral-950/80 border border-emerald-500/25 shadow-2xl backdrop-blur-xl mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-neutral-800/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-950/40">
+                <PlayCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white uppercase tracking-tight font-heading flex items-center gap-2">
+                <h3 className="text-lg font-black text-white uppercase tracking-tight font-heading flex items-center gap-2.5">
                   1. Kampanye Sedang Berjalan (Live Running)
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400">
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 animate-pulse">
                     {runningCampaigns.length} Aktif
                   </span>
                 </h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Klik card produk untuk memantau detail proses 5 Sub-Agent AI & telemetri iklan secara langsung.
+                  Klik card produk untuk memantau keseluruhan tiap tahap proses 5 Sub-Agent AI secara live.
                 </p>
               </div>
             </div>
@@ -259,7 +233,7 @@ export default function Dashboard() {
               {[1, 2].map((n) => <CampaignCardSkeleton key={n} />)}
             </div>
           ) : runningCampaigns.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-neutral-950/40 border border-neutral-900 text-center flex flex-col items-center justify-center">
+            <div className="p-8 rounded-2xl bg-neutral-900/40 border border-neutral-800/80 text-center flex flex-col items-center justify-center">
               <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-500 flex items-center justify-center mb-3">
                 <PlayCircle className="w-6 h-6" />
               </div>
@@ -284,7 +258,7 @@ export default function Dashboard() {
                     hasRedBar
                     isHoverable
                     onClick={() => navigate(`/campaign/${c.id || idx}`, { state: { campaign: c, viewMode: 'process' } })}
-                    className="flex flex-col justify-between cursor-pointer border-emerald-500/30 hover:border-emerald-500/60"
+                    className="flex flex-col justify-between cursor-pointer border-emerald-500/30 hover:border-emerald-500/60 bg-neutral-900/80"
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3 mb-2">
@@ -335,23 +309,23 @@ export default function Dashboard() {
         </div>
 
         {/* ========================================================================= */}
-        {/* BAGIAN 2: KAMPANYE SELESAI (LAPORAN HASIL IKLAN & BLUEPRINT ARSIP) */}
+        {/* CARD PEMBUNGKUS 2: KAMPANYE SELESAI (LAPORAN HASIL IKLAN & ARSIP) */}
         {/* ========================================================================= */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between pb-3 mb-5 border-b border-neutral-800/80">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4" />
+        <div className="p-6 sm:p-7 rounded-3xl bg-neutral-950/80 border border-rose-500/25 shadow-2xl backdrop-blur-xl mb-8">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-neutral-800/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center shadow-lg shadow-rose-950/40">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white uppercase tracking-tight font-heading flex items-center gap-2">
+                <h3 className="text-lg font-black text-white uppercase tracking-tight font-heading flex items-center gap-2.5">
                   2. Kampanye Selesai (Laporan Hasil Iklan & Blueprint)
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-300">
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-300">
                     {completedCampaigns.length} Selesai
                   </span>
                 </h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Klik card produk yang sudah selesai untuk langsung membuka laporan performa akhir & rekapitulasi laba.
+                  Klik card produk untuk langsung menampilkan laporannya saja (hasil iklannya bagaimana).
                 </p>
               </div>
             </div>
@@ -362,7 +336,7 @@ export default function Dashboard() {
               {[1, 2].map((n) => <CampaignCardSkeleton key={n} />)}
             </div>
           ) : completedCampaigns.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-neutral-950/40 border border-neutral-900 text-center flex flex-col items-center justify-center">
+            <div className="p-8 rounded-2xl bg-neutral-900/40 border border-neutral-800/80 text-center flex flex-col items-center justify-center">
               <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-500 flex items-center justify-center mb-3">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -385,7 +359,7 @@ export default function Dashboard() {
                     hasRedBar
                     isHoverable
                     onClick={() => navigate(`/campaign/${c.id || idx}`, { state: { campaign: c, viewMode: 'report' } })}
-                    className="flex flex-col justify-between cursor-pointer"
+                    className="flex flex-col justify-between cursor-pointer bg-neutral-900/80"
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between gap-3 mb-2">
