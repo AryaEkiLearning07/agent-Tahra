@@ -29,13 +29,15 @@ class MultiAgentOrchestrator:
         # SUB-AGENT 1: Market & Product Researcher (The Explorer)
         # =========================================================================
         agent1_system = """
-        You are Sub-Agent 1 (The Explorer), a Market & Product Research AI for Indonesian UMKM.
-        TASK: Conduct proxy competitor research, market pain points, define USP, and state the DATA FOUNDATION.
+        You are Sub-Agent 1 (The Explorer), an Elite Market & Product Intelligence AI for Indonesian UMKM.
+        TASK: Conduct genuine, authentic market research, competitor analysis, customer pain points, and buyer personas for the exact product provided.
         RULES:
-        - Identify a realistic Competitor Proxy in Indonesia (e.g., if artisan coffee Rp 20rb -> Janji Jiwa / Indomaret Point).
+        - Identify REAL Competitor Proxies in Indonesia for this specific product/service.
         - Identify 2-3 genuine Pain Points why customers need this product.
+        - Generate 2 realistic Buyer Personas with Indonesian names, age ranges, and purchasing motivations.
+        - Formulate a realistic Voice of Customer (positive triggers & competitor friction points).
         - product_class: "Murah" if price < 50000, "Menengah" if 50000-200000, "Premium" if > 200000.
-        - data_foundation: 1-2 sentences explaining the market data & consumer behavior reasoning behind this research.
+        - data_foundation: Detailed explanation of the Indonesian market sentiment, search behavior, and demographic analysis.
         OUTPUT: JSON ONLY matching schema.
         Schema:
         {
@@ -46,32 +48,43 @@ class MultiAgentOrchestrator:
           "usp": str,
           "pain_points": list[str],
           "competitor_proxy": str,
+          "market_demand": {
+            "trending_views": str,
+            "monthly_search_volume": str,
+            "purchase_intent_score": str
+          },
+          "voice_of_customer": {
+            "sample_size": str,
+            "positive_triggers": list[str],
+            "competitor_friction_points": list[str]
+          },
+          "competitor_matrix": [
+            {
+              "brand_name": str,
+              "price": str,
+              "grammage": str,
+              "pros_cons": str
+            }
+          ],
+          "buyer_personas": [
+            {
+              "name": str,
+              "age_range": str,
+              "profile_description": str,
+              "purchase_trigger": str
+            }
+          ],
           "data_foundation": str
         }
         """
-        agent1_user = f"Nama Produk: {input_data.product_name}\nHarga: Rp {input_data.harga_jual:,}\nHPP: Rp {input_data.hpp:,}\nKategori: {input_data.kategori}".replace(",", ".")
+        agent1_user = f"Nama Produk / Layanan: {input_data.product_name}\nHarga Jual: Rp {input_data.harga_jual:,}\nModal/HPP: Rp {input_data.hpp:,}\nKategori: {input_data.kategori}\nPlatform Preferensi: {input_data.platform}".replace(",", ".")
 
         raw_agent1 = await llm_gateway.execute_structured_agent(
             agent_name="Sub-Agent 1 (The Explorer)",
             system_prompt=agent1_system,
             user_message=agent1_user,
-            temperature=0.2
+            temperature=0.3
         )
-        
-        # Inject RAG Deep Market Intelligence Dossier
-        rag_intel = market_intelligence_engine.synthesize_market_dossier(
-            product_name=input_data.product_name,
-            category=input_data.kategori,
-            harga_jual=input_data.harga_jual
-        )
-        
-        raw_agent1["market_demand"] = rag_intel.get("market_demand")
-        raw_agent1["voice_of_customer"] = rag_intel.get("voice_of_customer")
-        raw_agent1["competitor_matrix"] = rag_intel.get("competitor_matrix")
-        raw_agent1["buyer_personas"] = rag_intel.get("buyer_personas")
-
-        if "data_foundation" not in raw_agent1 or not raw_agent1["data_foundation"]:
-            raw_agent1["data_foundation"] = rag_intel.get("data_foundation", f"Berdasarkan benchmark industri {input_data.kategori} di rentang harga Rp {input_data.harga_jual:,}, produk memiliki posisi bersaing langsung dengan {raw_agent1.get('competitor_proxy', 'pesaing lokal')}.")
         
         agent1_res = Agent1MarketResearchOutput(**raw_agent1)
 
@@ -84,15 +97,16 @@ class MultiAgentOrchestrator:
         )
 
         agent2_system = """
-        You are Sub-Agent 2 (The Planner), an Elite Digital Marketing Strategy Architect.
-        TASK: Design the advertising battleground based on market research and unit economics.
+        You are Sub-Agent 2 (The Planner), an Elite Digital Marketing Strategy Architect for Indonesian Businesses.
+        TASK: Design the advertising channel battleground based on market research and unit economics.
         RULES:
-        - Decide Platform: "TikTok" (visual Gen-Z), "Instagram Reels" (lifestyle), "Facebook Feed" (mature broad), "Google Search" (high intent).
+        - Decide the BEST Platform: "TikTok" (visual/impulse/FMCG/fashion), "Instagram Reels" (lifestyle/beauty/aesthetic), "Facebook Feed" (broad 30+/local services/B2B), "Google Search" (high-intent urgent services/custom work).
         - Decide Format Iklan: "Video Pendek (9:16)" if TikTok/Reels, "Poster/Gambar (1:1)" if Feed, "Teks Search (16:9)" if Google.
         - aspect_ratio: "9:16" or "1:1" or "16:9".
-        - bidding_model: "CPM" if awareness/thin margin, "CPC" if traffic, "CPA" if healthy margin.
-        - max_cpa_limit: maximum 40% of margin profit value.
-        - data_foundation: State the mathematical & demographic reason why this channel and CPA cap are chosen.
+        - bidding_model: "CPM" if awareness, "CPC" if traffic/search, "CPA" if direct conversion.
+        - max_cpa_limit: maximum 40% of margin profit value (safe ceiling).
+        - strategic_rationale: Explain clearly why this exact channel strategy fits the product's margin and target audience.
+        - data_foundation: State the mathematical, demographic, and conversion benchmarks.
         OUTPUT: JSON ONLY matching schema.
         Schema:
         {
@@ -101,6 +115,21 @@ class MultiAgentOrchestrator:
           "aspect_ratio": "9:16" | "1:1" | "16:9",
           "bidding_model": "CPM" | "CPC" | "CPA",
           "max_cpa_limit": int,
+          "channel_suitability_matrix": [
+            {
+              "channel_name": str,
+              "suitability_score": int,
+              "verdict": "PRIMARY_RECOMMENDED" | "SECONDARY_SUPPORT" | "NOT_RECOMMENDED",
+              "cost_benchmark": str
+            }
+          ],
+          "budget_allocation_split": {
+            "primary_channel": str,
+            "primary_percentage": int,
+            "secondary_channel": str,
+            "secondary_percentage": int
+          },
+          "competitive_attack_angle": str,
           "strategic_rationale": str,
           "data_foundation": str
         }
@@ -121,28 +150,20 @@ class MultiAgentOrchestrator:
             temperature=0.2
         )
 
-        # Inject RAG Strategy Matrix (Multi-Channel Scoring)
-        strat_intel = market_intelligence_engine.synthesize_strategy_matrix(
-            product_name=input_data.product_name,
-            category=input_data.kategori,
-            margin_pct=unit_econ["margin_percentage"],
-            margin_val=unit_econ["margin_value"]
-        )
-
         agent2_res = Agent2StrategyOutput(
             margin_value=unit_econ["margin_value"],
             margin_percentage=unit_econ["margin_percentage"],
             financial_status=unit_econ["financial_status"],
-            platform=raw_agent2.get("platform", strat_intel["channel_suitability_matrix"][0]["channel_name"].split(" ")[0]),
+            platform=raw_agent2.get("platform", input_data.platform or "TikTok"),
             format_iklan=raw_agent2.get("format_iklan", "Video Pendek (9:16)"),
             aspect_ratio=raw_agent2.get("aspect_ratio", "9:16"),
-            bidding_model=raw_agent2.get("bidding_model", "CPM"),
+            bidding_model=raw_agent2.get("bidding_model", "CPA"),
             max_cpa_limit=raw_agent2.get("max_cpa_limit", int(unit_econ["margin_value"] * 0.4)),
-            channel_suitability_matrix=strat_intel.get("channel_suitability_matrix"),
-            budget_allocation_split=strat_intel.get("budget_allocation_split"),
-            competitive_attack_angle=strat_intel.get("competitive_attack_angle"),
+            channel_suitability_matrix=raw_agent2.get("channel_suitability_matrix"),
+            budget_allocation_split=raw_agent2.get("budget_allocation_split"),
+            competitive_attack_angle=raw_agent2.get("competitive_attack_angle"),
             strategic_rationale=raw_agent2.get("strategic_rationale", unit_econ["consultation_advice"]),
-            data_foundation=raw_agent2.get("data_foundation", f"Margin {unit_econ['margin_percentage']}% memberikan plafon CPA maksimal Rp {int(unit_econ['margin_value'] * 0.4):,} (40% profit) agar tidak mengorbankan cashflow operasional.")
+            data_foundation=raw_agent2.get("data_foundation", f"Plafon CPA maksimal Rp {int(unit_econ['margin_value'] * 0.4):,} menjaga laba bersih tetap positif di setiap pembelian.")
         )
 
         # Anti-Boncos VETO Gate

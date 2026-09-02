@@ -23,16 +23,33 @@ async def start_agent_pipeline(
     result = await orchestrator.run_pipeline(payload)
 
     # Persist to database
+    chosen_platform = (
+        result.agent2_strategy.platform
+        if result.agent2_strategy
+        else (payload.platform or "TikTok")
+    )
+    status_str = "Veto" if result.status == "VETO" else "Completed"
+    roas_str = (
+        f"{result.agent5_deploy.roas_report.roas_percentage}%"
+        if (result.agent5_deploy and result.agent5_deploy.roas_report)
+        else "-"
+    )
+    margin_pct = (
+        result.agent2_strategy.margin_percentage
+        if result.agent2_strategy
+        else 0.0
+    )
+
     campaign_entry = CampaignModel(
         product_name=payload.product_name,
         harga_jual=payload.harga_jual,
         hpp=payload.hpp,
         budget_harian=payload.budget_harian,
         kategori=payload.kategori,
-        platform=result.strategy.platform if result.strategy else (payload.platform or "TikTok"),
-        status="Veto" if result.status == "VETO" else "Completed",
-        roas=f"{result.roas_report.roas_percentage}%" if result.roas_report else "-",
-        margin_percentage=result.financial_report.margin_percentage,
+        platform=chosen_platform,
+        status=status_str,
+        roas=roas_str,
+        margin_percentage=margin_pct,
         result_json=json.dumps(result.model_dump())
     )
     db.add(campaign_entry)
