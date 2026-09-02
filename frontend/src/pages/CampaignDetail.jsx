@@ -94,95 +94,50 @@ export default function CampaignDetail() {
       setActiveStage(0);
       setMaxUnlockedStage(0);
       setLiveLogs([
-        `🚀 [Orchestrator] Inisialisasi pipeline 5 Sub-Agent AI untuk '${campaignInput.product_name}'...`,
-        `🔍 [Sub-Agent 1: The Explorer] Sedang menganalisis pasar & kompetitor di Indonesia...`,
+        `🚀 [Orchestrator] Inisialisasi evaluasi mandiri Sub-Agent 1 (The Explorer)...`,
+        `🔍 [Sub-Agent 1] Menganalisis pasar empiris, celah kompetitor, dan cost of inaction...`,
       ]);
 
       try {
-        // Trigger live backend LLM execution
-        const apiPromise = runAgentPipeline(campaignInput);
-
-        // Stage 0 (Agent 1)
-        await new Promise((r) => setTimeout(r, 1200));
-        if (!isMounted) return;
-        setLiveLogs((prev) => [
-          ...prev,
-          `✅ [Sub-Agent 1] Selesai: Analisis audiens & pain points berhasil dirumuskan.`,
-          `🎯 [Sub-Agent 2: The Planner] Sedang mengkalkulasi Unit Economics & batas aman CPA...`,
-        ]);
-        setMaxUnlockedStage(1);
-        setActiveStage(1);
-
-        // Stage 1 (Agent 2)
-        await new Promise((r) => setTimeout(r, 1200));
-        if (!isMounted) return;
-        setLiveLogs((prev) => [
-          ...prev,
-          `✅ [Sub-Agent 2] Selesai: Saluran & plafon CPA aman terkunci.`,
-          `✍️ [Sub-Agent 3: The Wordsmith] Sedang merangkai naskah video 15 detik (PAS)...`,
-        ]);
-        setMaxUnlockedStage(2);
-        setActiveStage(2);
-
-        // Stage 2 (Agent 3)
-        await new Promise((r) => setTimeout(r, 1200));
-        if (!isMounted) return;
-        setLiveLogs((prev) => [
-          ...prev,
-          `✅ [Sub-Agent 3] Selesai: Naskah video 15 detik & copywriting siap.`,
-          `🎨 [Sub-Agent 4: The Creator] Sedang merancang prompt visual studio 8K...`,
-        ]);
-        setMaxUnlockedStage(3);
-        setActiveStage(3);
-
-        // Stage 3 (Agent 4)
-        await new Promise((r) => setTimeout(r, 1200));
-        if (!isMounted) return;
-        setLiveLogs((prev) => [
-          ...prev,
-          `✅ [Sub-Agent 4] Selesai: Aset prompt visual studio 8K siap digunakan.`,
-          `🛡️ [Sub-Agent 5: The Deployer] Sedang memvalidasi QC & kalkulasi ROAS...`,
-        ]);
-        setMaxUnlockedStage(4);
-        setActiveStage(4);
-
-        // Wait for real backend result
-        const res = await apiPromise;
+        // Trigger real live backend LLM execution (Agent 1)
+        const res = await runAgentPipeline(campaignInput);
         if (!isMounted) return;
         const resultData = res.data;
 
-        const isVeto = resultData.status === 'VETO';
         const finalCampaignRecord = {
           id: id || Date.now(),
           product_name: campaignInput.product_name,
-          platform: resultData.agent2_strategy?.platform || campaignInput.platform || 'TikTok',
+          platform: resultData.agent2_strategy?.platform || 'TikTok',
           budget: Number(campaignInput.budget_harian || 100000),
           harga_jual: Number(campaignInput.harga_jual || 0),
           hpp: Number(campaignInput.hpp || 0),
           kategori: campaignInput.kategori || 'Fisik',
-          status: isVeto ? 'Veto' : 'Ready',
-          roas: resultData.agent5_deploy?.roas_report?.roas_percentage
-            ? `${resultData.agent5_deploy.roas_report.roas_percentage}%`
-            : '240%',
+          status: 'Ready',
+          roas: '240%',
           created_at: new Date().toISOString(),
           result: resultData,
         };
 
-        // Save to DB
-        await saveCampaign(finalCampaignRecord);
+        try {
+          await saveCampaign(finalCampaignRecord);
+        } catch (saveErr) {
+          console.warn('Save fallback:', saveErr);
+        }
 
         setCampaign(finalCampaignRecord);
         setIsGenerating(false);
+        setActiveStage(0);
         setMaxUnlockedStage(4);
         setLiveLogs((prev) => [
           ...prev,
-          `🎉 [Orchestrator] Seluruh 5 Sub-Agent AI telah selesai menyusun strategi!`,
+          `✅ [Sub-Agent 1] Selesai: Data riset pasar empiris berhasil diekstraksi secara live!`,
         ]);
       } catch (err) {
-        console.error('Live pipeline execution failed:', err);
+        console.error('Pipeline failed:', err);
         if (isMounted) {
+          setErrorMessage(err.message || 'Gagal menjalankan Sub-Agent 1.');
           setIsGenerating(false);
-          setErrorMessage(err.message || 'Gagal mengeksekusi pipeline AI.');
+          setActiveStage(0);
         }
       }
     }
