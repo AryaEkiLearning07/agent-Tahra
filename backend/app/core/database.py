@@ -25,13 +25,18 @@ async def init_db():
         await conn.run_sync(Base.metadata.create_all)
 
 async def get_db():
-    """Dependency for obtaining async DB session"""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+    """Dependency for obtaining async DB session with graceful fallback"""
+    try:
+        async with AsyncSessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+    except Exception as err:
+        import logging
+        logging.getLogger("tahra.db").warning(f"⚠️ Database session connection issue (non-fatal): {err}")
+        yield None
