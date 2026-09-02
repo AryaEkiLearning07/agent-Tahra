@@ -21,18 +21,18 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full bg-neutral-950/85 backdrop-blur-2xl border-b border-rose-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
+        {/* Integrated Wordmark: [T-Icon] + AHRA + .AI */}
         <div
           onClick={() => navigate('/')}
-          className="flex items-center gap-2.5 cursor-pointer group select-none"
+          className="flex items-center gap-1.5 cursor-pointer group select-none"
         >
           <TahraLogo size="sm" className="group-hover:scale-105 transition-transform" />
-          <div className="flex items-center gap-1.5">
-            <span className="font-black text-lg tracking-tight text-white font-heading">
-              TAHRA
+          <div className="flex items-center">
+            <span className="font-black text-xl tracking-tight text-white font-heading">
+              AHRA
             </span>
-            <span className="text-rose-500 font-extrabold text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 font-mono">
-              AI
+            <span className="text-rose-500 font-extrabold text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 font-mono tracking-wider ml-1.5">
+              .AI
             </span>
           </div>
         </div>
