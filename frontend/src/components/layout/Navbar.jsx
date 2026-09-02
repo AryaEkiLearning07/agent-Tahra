@@ -5,6 +5,8 @@ import { Button } from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../utils/cn';
 
+import { TahraLogo } from '../ui/TahraLogo';
+
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,17 +24,15 @@ export function Navbar() {
         {/* Brand Logo */}
         <div
           onClick={() => navigate('/')}
-          className="flex items-center gap-3 cursor-pointer group select-none"
+          className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 flex items-center justify-center font-black text-white text-lg tracking-tighter shadow-[0_0_20px_rgba(244,63,94,0.4)] group-hover:scale-105 transition-transform">
-            T
-          </div>
-          <div className="flex flex-col">
-            <span className="font-black text-lg tracking-tight text-white flex items-center gap-1">
+          <TahraLogo size="sm" className="group-hover:scale-105 transition-transform" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-black text-lg tracking-tight text-white font-heading">
               TAHRA
-              <span className="text-rose-500 font-extrabold text-xs px-1.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30">
-                AI
-              </span>
+            </span>
+            <span className="text-rose-500 font-extrabold text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 font-mono">
+              AI
             </span>
           </div>
         </div>
