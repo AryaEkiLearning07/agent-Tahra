@@ -56,6 +56,21 @@ class Agent1MarketResearchOutput(BaseModel):
     buyer_personas: Optional[List[BuyerPersonaItem]] = None
     data_foundation: str
 
+# --- ELITE PERFORMANCE MARKETING ARCHITECTURE (SUB-AGENT 2) ---
+
+class ChannelSuitabilityItem(BaseModel):
+    channel_name: str
+    suitability_score: int
+    verdict: Literal["PRIMARY_RECOMMENDED", "SECONDARY_SUPPORT", "NOT_RECOMMENDED"]
+    cost_benchmark: str
+    data_rationale: str
+
+class MultiChannelBudgetSplit(BaseModel):
+    primary_channel: str
+    primary_percentage: int
+    secondary_channel: str
+    secondary_percentage: int
+
 # SUB-AGENT 2: Strategy Architect (The Planner)
 class Agent2StrategyOutput(BaseModel):
     margin_value: int
@@ -64,8 +79,11 @@ class Agent2StrategyOutput(BaseModel):
     platform: str
     format_iklan: str
     aspect_ratio: Literal["9:16", "1:1", "16:9"]
-    bidding_model: Literal["CPM", "CPC", "CPA"]
+    bidding_model: str
     max_cpa_limit: int
+    channel_suitability_matrix: Optional[List[ChannelSuitabilityItem]] = None
+    budget_allocation_split: Optional[MultiChannelBudgetSplit] = None
+    competitive_attack_angle: Optional[str] = None
     strategic_rationale: str
     data_foundation: str
 
@@ -77,7 +95,7 @@ class VideoScriptSchema(BaseModel):
 
 class Agent3CopywriterOutput(BaseModel):
     headline: str
-    primary_text: str  # Framework PAS (Problem - Agitate - Solution)
+    primary_text: str
     cta: str
     video_script: Optional[VideoScriptSchema] = None
     data_foundation: str

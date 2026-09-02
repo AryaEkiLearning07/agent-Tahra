@@ -121,15 +121,26 @@ class MultiAgentOrchestrator:
             temperature=0.2
         )
 
+        # Inject RAG Strategy Matrix (Multi-Channel Scoring)
+        strat_intel = market_intelligence_engine.synthesize_strategy_matrix(
+            product_name=input_data.product_name,
+            category=input_data.kategori,
+            margin_pct=unit_econ["margin_percentage"],
+            margin_val=unit_econ["margin_value"]
+        )
+
         agent2_res = Agent2StrategyOutput(
             margin_value=unit_econ["margin_value"],
             margin_percentage=unit_econ["margin_percentage"],
             financial_status=unit_econ["financial_status"],
-            platform=raw_agent2.get("platform", "TikTok"),
+            platform=raw_agent2.get("platform", strat_intel["channel_suitability_matrix"][0]["channel_name"].split(" ")[0]),
             format_iklan=raw_agent2.get("format_iklan", "Video Pendek (9:16)"),
             aspect_ratio=raw_agent2.get("aspect_ratio", "9:16"),
             bidding_model=raw_agent2.get("bidding_model", "CPM"),
             max_cpa_limit=raw_agent2.get("max_cpa_limit", int(unit_econ["margin_value"] * 0.4)),
+            channel_suitability_matrix=strat_intel.get("channel_suitability_matrix"),
+            budget_allocation_split=strat_intel.get("budget_allocation_split"),
+            competitive_attack_angle=strat_intel.get("competitive_attack_angle"),
             strategic_rationale=raw_agent2.get("strategic_rationale", unit_econ["consultation_advice"]),
             data_foundation=raw_agent2.get("data_foundation", f"Margin {unit_econ['margin_percentage']}% memberikan plafon CPA maksimal Rp {int(unit_econ['margin_value'] * 0.4):,} (40% profit) agar tidak mengorbankan cashflow operasional.")
         )
