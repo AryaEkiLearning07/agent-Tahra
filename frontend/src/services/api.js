@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const FASTAPI_URL = import.meta.env.VITE_AI_BACKEND_URL || 'http://127.0.0.1:8000';
-const EXPRESS_URL = import.meta.env.VITE_DB_BACKEND_URL || 'http://localhost:5000';
+// Use relative API routing in production so Nginx proxies /api/ internally without Chrome Private Network warnings
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const SEED_CAMPAIGNS = [];
 
@@ -19,7 +19,7 @@ export async function getCampaigns() {
   }
 
   try {
-    const res = await axios.get(`${EXPRESS_URL}/api/campaigns`, { timeout: 1000 });
+    const res = await axios.get(`${API_BASE}/api/campaigns`, { timeout: 2000 });
     if (res.data && Array.isArray(res.data)) {
       localStorage.setItem('tahra_campaigns', JSON.stringify(res.data));
       return res.data;
@@ -36,7 +36,7 @@ export async function getCampaigns() {
  */
 export async function runAgentPipeline(campaignInput) {
   try {
-    const response = await axios.post(`${FASTAPI_URL}/api/start-agent`, {
+    const response = await axios.post(`${API_BASE}/api/start-agent`, {
       product_name: campaignInput.product_name,
       harga_jual: Number(campaignInput.harga_jual),
       hpp: Number(campaignInput.hpp),
