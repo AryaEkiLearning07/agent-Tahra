@@ -326,86 +326,131 @@ export default function CampaignDetail() {
           </div>
 
           {/* ========================================================================= */}
-          {/* ELEGANT 5-STAGE NAVIGATION STEPPER */}
+          {/* CONNECTED MULTI-AGENT PIPELINE & TIMELINE WORKFLOW */}
           {/* ========================================================================= */}
-          <div className="p-3 bg-neutral-950/80 rounded-2xl border border-neutral-800 shadow-lg">
-            <div className="grid grid-cols-5 gap-2">
-              {stages.map((st) => {
-                const isActive = activeStage === st.id;
-                const isPassed = activeStage > st.id;
+          <div className="p-5 sm:p-6 bg-neutral-950/90 rounded-3xl border border-neutral-800/90 shadow-2xl relative overflow-hidden">
+            {/* Pipeline Header */}
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-neutral-900">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                <span className="text-xs font-black uppercase tracking-widest text-white font-mono">
+                  ALUR PIPELINE 5 SUB-AGENT AI OTONOM
+                </span>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-neutral-400">
+                Tahap {activeStage + 1} dari 5 • {stages[activeStage].title}
+              </span>
+            </div>
 
-                return (
-                  <button
+            {/* Continuous Pipeline Connector Track */}
+            <div className="relative mb-6">
+              {/* Background Inactive Track */}
+              <div className="absolute top-5 left-6 right-6 h-1 bg-neutral-900 z-0 rounded-full" />
+              
+              {/* Active Glowing Animated Gradient Track */}
+              <div
+                className="absolute top-5 left-6 h-1 bg-gradient-to-r from-rose-600 via-red-500 to-rose-400 z-0 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]"
+                style={{ width: `calc(${(activeStage / 4) * 100}% * (100% - 48px) / 100)` }}
+              />
+
+              {/* 5 Connected Pipeline Nodes */}
+              <div className="grid grid-cols-5 relative z-10">
+                {stages.map((st, idx) => {
+                  const isActive = activeStage === st.id;
+                  const isPassed = activeStage > st.id;
+
+                  return (
+                    <div
+                      key={st.id}
+                      onClick={() => setActiveStage(st.id)}
+                      className="flex flex-col items-center text-center cursor-pointer group px-1"
+                    >
+                      {/* Node Circle */}
+                      <div
+                        className={cn(
+                          'w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 font-mono font-black text-xs relative shadow-lg',
+                          isActive
+                            ? 'bg-rose-600 text-white ring-4 ring-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.7)] scale-110'
+                            : isPassed
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
+                            : 'bg-neutral-900 text-neutral-500 border border-neutral-800 hover:border-neutral-700 hover:text-neutral-300'
+                        )}
+                      >
+                        {isPassed ? (
+                          <Check className="w-5 h-5 stroke-[3]" />
+                        ) : (
+                          <span>{st.num}</span>
+                        )}
+
+                        {/* Active Pulse Beacon */}
+                        {isActive && (
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-rose-400 rounded-full animate-ping pointer-events-none" />
+                        )}
+                      </div>
+
+                      {/* Node Labels */}
+                      <div className="mt-3 flex flex-col items-center">
+                        <span
+                          className={cn(
+                            'text-xs font-bold transition-colors line-clamp-1',
+                            isActive
+                              ? 'text-rose-400 font-black'
+                              : isPassed
+                              ? 'text-neutral-200'
+                              : 'text-neutral-500 group-hover:text-neutral-300'
+                          )}
+                        >
+                          {st.title}
+                        </span>
+                        <span className="text-[10px] text-neutral-500 font-medium hidden md:block">
+                          {st.role}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bottom Pipeline Navigation Controller */}
+            <div className="flex items-center justify-between pt-3 border-t border-neutral-900">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={activeStage === 0}
+                leftIcon={<ChevronLeft className="w-4 h-4" />}
+                onClick={() => setActiveStage((p) => Math.max(0, p - 1))}
+                className="text-neutral-400 hover:text-white"
+              >
+                Tahap Sebelumnya
+              </Button>
+
+              <div className="flex items-center gap-1.5">
+                {stages.map((st) => (
+                  <div
                     key={st.id}
                     onClick={() => setActiveStage(st.id)}
                     className={cn(
-                      'p-2.5 sm:p-3 rounded-xl text-left transition-all flex flex-col gap-1 border cursor-pointer relative overflow-hidden',
-                      isActive
-                        ? 'bg-rose-950/40 border-rose-500/70 ring-1 ring-rose-500/50 shadow-[0_0_20px_rgba(244,63,94,0.2)]'
-                        : isPassed
-                        ? 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-700'
-                        : 'bg-neutral-950/40 border-neutral-900 hover:border-neutral-800'
+                      'h-1.5 rounded-full transition-all cursor-pointer',
+                      activeStage === st.id
+                        ? 'w-6 bg-rose-500'
+                        : activeStage > st.id
+                        ? 'w-2 bg-emerald-500'
+                        : 'w-2 bg-neutral-800'
                     )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={cn(
-                          'w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black font-mono',
-                          isActive
-                            ? 'bg-rose-500 text-white'
-                            : isPassed
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-neutral-800 text-neutral-400'
-                        )}
-                      >
-                        {isPassed ? '✓' : st.num}
-                      </span>
-                      <span className="text-[10px] text-neutral-500 font-medium hidden sm:inline">
-                        {st.tag}
-                      </span>
-                    </div>
+                  />
+                ))}
+              </div>
 
-                    <div className="mt-0.5">
-                      <strong
-                        className={cn(
-                          'text-xs block truncate',
-                          isActive ? 'text-white font-black' : 'text-neutral-300 font-bold'
-                        )}
-                      >
-                        {st.title}
-                      </strong>
-                      <span className="text-[10px] text-neutral-500 block truncate">
-                        {st.role}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Bottom Stepper Action Arrows */}
-            <div className="flex items-center justify-between pt-3 mt-2 border-t border-neutral-900 px-1">
-              <button
-                disabled={activeStage === 0}
-                onClick={() => setActiveStage((p) => Math.max(0, p - 1))}
-                className="text-xs font-bold text-neutral-400 hover:text-white disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1.5 cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Tahap Sebelumnya</span>
-              </button>
-
-              <span className="text-xs font-mono font-bold text-neutral-500">
-                Tahap {activeStage + 1} dari 5
-              </span>
-
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 disabled={activeStage === 4}
+                rightIcon={<ChevronRight className="w-4 h-4" />}
                 onClick={() => setActiveStage((p) => Math.min(4, p + 1))}
-                className="text-xs font-bold text-rose-400 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1.5 cursor-pointer"
               >
-                <span>Tahap Selanjutnya</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                Tahap Selanjutnya
+              </Button>
             </div>
           </div>
 
