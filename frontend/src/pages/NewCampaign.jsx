@@ -308,7 +308,11 @@ export default function NewCampaign() {
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <button
                       type="button"
-                      onClick={() => setForm({ ...form, destination_type: 'whatsapp' })}
+                      onClick={() => setForm({ 
+                        ...form, 
+                        destination_type: 'whatsapp',
+                        destination_value: form.destination_value.startsWith('http') ? '081289123456' : form.destination_value || '081289123456'
+                      })}
                       className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
                         form.destination_type === 'whatsapp'
                           ? 'bg-emerald-950/30 border-emerald-500/60 text-white ring-1 ring-emerald-500/40'
@@ -324,7 +328,11 @@ export default function NewCampaign() {
 
                     <button
                       type="button"
-                      onClick={() => setForm({ ...form, destination_type: 'marketplace' })}
+                      onClick={() => setForm({ 
+                        ...form, 
+                        destination_type: 'marketplace',
+                        destination_value: form.destination_value.startsWith('08') ? 'https://shopee.co.id/toko-tahra-official' : form.destination_value || 'https://shopee.co.id/toko-tahra-official'
+                      })}
                       className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
                         form.destination_type === 'marketplace'
                           ? 'bg-rose-950/30 border-rose-500/60 text-white ring-1 ring-rose-500/40'
