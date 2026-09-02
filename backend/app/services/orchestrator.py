@@ -35,19 +35,23 @@ class MultiAgentOrchestrator:
         STRICT RULES:
         1. NO FLUFF / NO AMBIGUITY: Ban generic adjectives ("terbaik", "kualitas tinggi", "profesional", "murah"). State explicit concrete features, numbers, units, and verified market realities.
         2. PURCHASE BEHAVIOR: Output "IMPULSE_BUYING" (if visual/fast decision/food/fashion/gadget <Rp 200rb), "HIGH_INTENT_SEARCH" (if urgent/repair/service/custom work), or "CONSIDERATION" (if premium/high-ticket).
-        3. TARGET DEMOGRAPHY: Narrow age bracket (e.g. "22-28 tahun"), specific job/routine, and city tier in Indonesia.
-        4. AUDIENCE PSYCHOGRAPHY: State exact time of day, routine context, and monthly spending habits in IDR.
-        5. COMPETITOR BENCHMARK: Name 1-2 REAL competitor brands/proxies in Indonesia, their concrete pricing in IDR, and the EXACT observed friction points/complaints of their customers.
-        6. QUANTIFIED CUSTOMER PAINS: Exactly 2-3 quantified pain points with concrete time/financial/emotional loss.
-        7. EMPIRICAL PERSONAS: Exactly 2 real personas with specific name, narrow age, job, exact trigger moment, biggest hesitation before payment, and deciding proof factor.
-        8. USP STATEMENT: Exactly 1 single concrete, verifiable promise sentence with numbers/specs, ZERO empty claims.
-        9. DATA FOUNDATION: Concise empirical market reasoning.
+        3. MARKET AWARENESS LEVEL: Output "UNAWARE" | "PROBLEM_AWARE" | "SOLUTION_AWARE" | "PRODUCT_AWARE" | "MOST_AWARE" (Eugene Schwartz Framework).
+        4. TARGET DEMOGRAPHY: Narrow age bracket (e.g. "22-28 tahun"), specific job/routine, and city tier in Indonesia.
+        5. AUDIENCE PSYCHOGRAPHY: State exact time of day, routine context, and monthly spending habits in IDR.
+        6. COMPETITOR BENCHMARK: Name 1-2 REAL competitor brands/proxies in Indonesia, their concrete pricing in IDR, and the EXACT observed friction points/complaints of their customers.
+        7. COST OF INACTION: State the exact concrete financial loss, wasted time, or severe consequence if the consumer delays purchasing today.
+        8. QUANTIFIED CUSTOMER PAINS: Exactly 2-3 quantified pain points with concrete time/financial/emotional loss.
+        9. EMPIRICAL PERSONAS: Exactly 2 real personas with specific name, narrow age, job, exact trigger moment, biggest hesitation before payment, and deciding proof factor.
+        10. RISK REVERSAL: State the exact concrete guarantee/offer that eliminates purchase friction (e.g., garansi retur 100%, ganti baru, gratis cuci ulang).
+        11. USP STATEMENT: Exactly 1 single concrete, verifiable promise sentence with numbers/specs, ZERO empty claims.
+        12. DATA FOUNDATION: Concise empirical market reasoning.
 
         OUTPUT: JSON ONLY matching schema.
         Schema:
         {
           "product_name": str,
           "purchase_behavior": "IMPULSE_BUYING" | "HIGH_INTENT_SEARCH" | "CONSIDERATION",
+          "market_awareness_level": "UNAWARE" | "PROBLEM_AWARE" | "SOLUTION_AWARE" | "PRODUCT_AWARE" | "MOST_AWARE",
           "target_demography": str,
           "audience_psychography": str,
           "competitor_benchmark": {
@@ -55,6 +59,7 @@ class MultiAgentOrchestrator:
             "observed_customer_friction": str,
             "price_point_gap": str
           },
+          "cost_of_inaction": str,
           "quantified_customer_pains": list[str],
           "buyer_personas": [
             {
@@ -64,6 +69,7 @@ class MultiAgentOrchestrator:
               "deciding_proof_factor": str
             }
           ],
+          "risk_reversal_mechanism": str,
           "usp_statement": str,
           "data_foundation": str
         }

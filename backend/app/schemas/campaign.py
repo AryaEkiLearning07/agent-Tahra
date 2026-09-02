@@ -17,7 +17,7 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- STRICT EMPIRICAL SUB-AGENT 1 SCHEMAS (ZERO-AMBIGUITY MARKET INTELLIGENCE) ---
+# --- STRICT EMPIRICAL SUB-AGENT 1 SCHEMAS (HIGH-LEVERAGE MARKET INTELLIGENCE) ---
 
 class CompetitorEmpiricalBenchmark(BaseModel):
     benchmark_brand_or_category: str = Field(..., description="Pesaing riil di pasar Indonesia")
@@ -34,11 +34,16 @@ class EmpiricalBuyerPersona(BaseModel):
 class Agent1MarketResearchOutput(BaseModel):
     product_name: str
     purchase_behavior: Literal["IMPULSE_BUYING", "HIGH_INTENT_SEARCH", "CONSIDERATION"]
+    market_awareness_level: Literal["UNAWARE", "PROBLEM_AWARE", "SOLUTION_AWARE", "PRODUCT_AWARE", "MOST_AWARE"] = Field(
+        default="PROBLEM_AWARE", description="Tingkat kesadaran audiens terhadap masalah & produk"
+    )
     target_demography: str = Field(..., description="Mikro-segmentasi demografi (rentang usia sempit, profesi, lokasi)")
     audience_psychography: str = Field(..., description="Konteks rutinitas harian & kebiasaan transaksi riil")
     competitor_benchmark: CompetitorEmpiricalBenchmark
+    cost_of_inaction: str = Field(..., description="Kerugian konkret finansial/waktu jika konsumen menunda membeli")
     quantified_customer_pains: List[str] = Field(..., min_length=2, max_length=3, description="2-3 masalah terukur dengan kerugian nyata")
     buyer_personas: List[EmpiricalBuyerPersona] = Field(..., min_length=2, max_length=2, description="2 persona pembeli empiris")
+    risk_reversal_mechanism: str = Field(..., description="Garansi / penawaran konkret penumpas keraguan transaksi")
     usp_statement: str = Field(..., description="1 kalimat janji konkret berbasis angka/fitur, bukan klaim kosong")
     data_foundation: str = Field(..., description="Fakta pasar empiris yang mendasari analisis ini")
 
@@ -53,6 +58,7 @@ class Agent1MarketResearchOutput(BaseModel):
     @property
     def pain_points(self) -> List[str]:
         return self.quantified_customer_pains
+
 
 
 # --- ELITE PERFORMANCE MARKETING ARCHITECTURE (SUB-AGENT 2) ---

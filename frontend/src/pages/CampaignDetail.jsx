@@ -475,11 +475,16 @@ export default function CampaignDetail() {
                         </span>
                         <span className="text-xs text-neutral-400 font-medium">Intelijen Pasar Empiris & Analisis Celah Kompetitor</span>
                       </div>
-                      <h2 className="text-xl font-black text-white uppercase tracking-tight font-heading flex items-center gap-3">
+                      <h2 className="text-xl font-black text-white uppercase tracking-tight font-heading flex flex-wrap items-center gap-3">
                         <span>{agent1?.product_name || campaign?.product_name || 'Riset Pasar Produk'}</span>
                         {agent1?.purchase_behavior && (
                           <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-300 font-bold">
-                            Karakter: {agent1.purchase_behavior.replace(/_/g, ' ')}
+                            Tipe: {agent1.purchase_behavior.replace(/_/g, ' ')}
+                          </span>
+                        )}
+                        {agent1?.market_awareness_level && (
+                          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-400 font-bold">
+                            Awareness: {agent1.market_awareness_level.replace(/_/g, ' ')}
                           </span>
                         )}
                       </h2>
@@ -543,6 +548,19 @@ export default function CampaignDetail() {
                         </div>
                       </div>
 
+                      {/* High-Leverage: Cost of Inaction */}
+                      {agent1?.cost_of_inaction && (
+                        <div className="p-5 rounded-2xl bg-red-950/20 border border-red-500/40 md:col-span-2 flex flex-col gap-2">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-2 font-mono">
+                            <ShieldAlert className="w-4 h-4 text-red-400" />
+                            Harga Kerugian Konsumen Jika Menunda Beli (Cost of Inaction):
+                          </h4>
+                          <p className="text-xs text-neutral-200 leading-relaxed font-medium bg-neutral-950/80 p-3.5 rounded-xl border border-red-900/40">
+                            {agent1.cost_of_inaction}
+                          </p>
+                        </div>
+                      )}
+
                       {/* Quantified Customer Pains */}
                       <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
                         <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
@@ -593,6 +611,19 @@ export default function CampaignDetail() {
                               </div>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Risk Reversal Mechanism */}
+                      {agent1?.risk_reversal_mechanism && (
+                        <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 md:col-span-2 flex flex-col gap-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                            Faktor Pembalik Risiko (Risk-Reversal Guarantee):
+                          </span>
+                          <p className="text-xs font-bold text-white leading-relaxed">
+                            {agent1.risk_reversal_mechanism}
+                          </p>
                         </div>
                       )}
 
