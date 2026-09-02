@@ -34,9 +34,23 @@ import { Badge } from '../components/ui/Badge';
 import { AgentThinkingModal } from '../components/feedback/AgentThinkingModal';
 import { runAgentPipeline, saveCampaign } from '../services/api';
 import { calculateMargin, formatRp } from '../utils/formatters';
+import { useAuth } from '../context/AuthContext';
 
 export default function NewCampaign() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  // Redirect to Login if not authenticated
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          redirect: '/new',
+          message: 'Silakan masuk atau daftar akun terlebih dahulu untuk mulai membuat kampanye iklan AI.',
+        },
+      });
+    }
+  }, [isAuthenticated, navigate]);
 
   // Smart Prompt & Parameter State
   const [promptText, setPromptText] = useState('');

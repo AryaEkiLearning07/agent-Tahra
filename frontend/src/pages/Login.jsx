@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Lock, Mail, User, Building, Phone, Sparkles } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowRight, Lock, Mail, User, Building, Phone, Sparkles, Info } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -9,10 +9,14 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const redirectMessage = location.state?.message || '';
+  const redirectTarget = location.state?.redirect || '/dashboard';
 
   const [form, setForm] = useState({
     name: '',
@@ -42,14 +46,14 @@ export default function Login() {
 
       // Save Real User Profile
       login({
-        name: form.name || 'Owner UMKM',
+        name: form.name || form.email.split('@')[0],
         email: form.email,
-        company: form.company || 'Brand UMKM Nusantara',
+        company: form.company || 'Bisnis Digital UMKM',
         whatsapp: form.whatsapp || '081289123456',
       });
 
       setLoading(false);
-      navigate('/dashboard');
+      navigate(redirectTarget);
     }, 500);
   };
 
@@ -109,6 +113,13 @@ export default function Login() {
               Daftar
             </button>
           </div>
+
+          {redirectMessage && !error && (
+            <div className="mb-5 p-3.5 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2.5">
+              <Info className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{redirectMessage}</span>
+            </div>
+          )}
 
           {error && (
             <Alert variant="danger" className="mb-5" onClose={() => setError('')}>
