@@ -221,21 +221,84 @@ export default function NewCampaign() {
             <Card hasRedBar className="p-6 sm:p-8">
               <form onSubmit={handleFormPreSubmit} className="flex flex-col gap-5">
                 {/* 1. Basic Product Info */}
-                <Input
-                  label="Nama Produk / Brand UMKM"
-                  id="product_name"
-                  name="product_name"
-                  type="text"
-                  required
-                  placeholder="e.g. Sambal Cumi Asin TAHRA Pouch 150g"
-                  value={form.product_name}
-                  onChange={(e) =>
-                    setForm({ ...form, product_name: e.target.value })
-                  }
-                  error={formErrors.product_name}
-                  helperText="Sebutkan nama produk dengan jelas beserta varian atau ukurannya."
-                />
+                <div>
+                  <Input
+                    label="Nama Produk / Deskripsi Usaha Anda"
+                    id="product_name"
+                    name="product_name"
+                    type="text"
+                    required
+                    placeholder="e.g. Makanan Kucing, Sambal Cumi, Kaos Oversize, Kopi Susu..."
+                    value={form.product_name}
+                    onChange={(e) =>
+                      setForm({ ...form, product_name: e.target.value })
+                    }
+                    error={formErrors.product_name}
+                  />
 
+                  {/* AI SMART CLARIFICATION QUICK-PILLS */}
+                  {(() => {
+                    const query = form.product_name.toLowerCase();
+                    let suggestions = [];
+                    if (query.includes('kucing') || query.includes('cat') || query.includes('pet')) {
+                      suggestions = [
+                        { label: '🥩 Makanan Basah / Wet Food Pouch 85g', val: 'Makanan Kucing Basah Pouch 85g' },
+                        { label: '🥣 Dry Food Kering Karung 1-2kg', val: 'Dry Food Makanan Kucing Kering 1.5kg' },
+                        { label: '🏷️ Repack Hemat 500g', val: 'Makanan Kucing Repack Hemat 500g' },
+                        { label: '✨ Premium Grain-Free Holistic', val: 'Makanan Kucing Premium Grain-Free 1kg' }
+                      ];
+                    } else if (query.includes('kopi') || query.includes('coffee')) {
+                      suggestions = [
+                        { label: '☕ Kopi Susu Aren Botol 250ml', val: 'Kopi Susu Gula Aren Botol 250ml' },
+                        { label: '🫘 Biji Kopi Arabika 200g', val: 'Biji Kopi Arabika Single Origin 200g' },
+                        { label: '📦 Kopi Drip Bag Sachet Praktis', val: 'Kopi Drip Bag Praktis Isi 5 Sachet' }
+                      ];
+                    } else if (query.includes('sambal') || query.includes('pedas')) {
+                      suggestions = [
+                        { label: '🌶️ Sambal Cumi Asin Pouch 150g', val: 'Sambal Cumi Asin Gurih Pouch 150g' },
+                        { label: '🐟 Sambal Cakalang Asap 150g', val: 'Sambal Ikan Cakalang Asap 150g' },
+                        { label: '🧄 Sambal Bawang Ekstra Pedas', val: 'Sambal Bawang Ekstra Pedas 130g' }
+                      ];
+                    } else if (query.includes('baju') || query.includes('kaos') || query.includes('tshirt') || query.includes('pakaian')) {
+                      suggestions = [
+                        { label: '👕 Kaos Oversize Cotton 24s', val: 'Kaos Oversize Pria Cotton Combed 24s' },
+                        { label: '👗 Gamis / Dress Casual Wanita', val: 'Gamis Dress Crinkle Premium Busui' },
+                        { label: '👔 Kemeja Linen Lengan Pendek', val: 'Kemeja Linen Pria Lengan Pendek' }
+                      ];
+                    } else if (query.includes('skincare') || query.includes('serum') || query.includes('wajah')) {
+                      suggestions = [
+                        { label: '✨ Serum Pencerah Niacinamide 20ml', val: 'Serum Wajah Brightening Niacinamide 20ml' },
+                        { label: '🧴 Sunscreen Gel SPF 50', val: 'Sunscreen Gel Ringan SPF 50 50ml' },
+                        { label: '🧼 Facial Wash Gentle 100ml', val: 'Pembersih Wajah Gentle Low pH 100ml' }
+                      ];
+                    }
+
+                    if (suggestions.length === 0) return null;
+
+                    return (
+                      <div className="mt-2.5 p-3 rounded-2xl bg-rose-950/20 border border-rose-500/30 flex flex-col gap-1.5 animate-in fade-in">
+                        <span className="text-[11px] font-bold text-rose-300 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                          Bantu AI lebih spesifik? Klik salah satu varian ini (Opsional):
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {suggestions.map((s, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setForm({ ...form, product_name: s.val })}
+                              className="px-2.5 py-1 bg-neutral-900 hover:bg-rose-900/40 text-neutral-300 hover:text-white border border-neutral-800 hover:border-rose-500/50 rounded-lg text-xs transition-colors cursor-pointer"
+                            >
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* 2. Price and HPP Financial Engine */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Harga Jual ke Konsumen"
@@ -266,32 +329,23 @@ export default function NewCampaign() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Select
-                    label="Kategori Produk"
-                    id="kategori"
-                    name="kategori"
-                    value={form.kategori}
-                    onChange={(e) =>
-                      setForm({ ...form, kategori: e.target.value })
-                    }
-                    options={[
-                      { value: 'Fisik', label: '🧴 Produk Fisik (FMCG/Retail)' },
-                      { value: 'Jasa', label: '🛠️ Jasa / Layanan Bisnis' },
-                      { value: 'Digital', label: '💻 Produk Digital / Software' },
-                    ]}
-                  />
-
-                  <div className="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 flex flex-col justify-center">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-neutral-300">Channel & Format Iklan</span>
-                      <span className="text-[10px] font-black uppercase text-rose-400 font-mono px-1.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30">
-                        AI OTONOM
-                      </span>
+                {/* AI Automated Market Discovery Banner (Zero Manual Select) */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-neutral-900/90 to-neutral-950 border border-neutral-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                      <Cpu className="w-4 h-4" />
                     </div>
-                    <p className="text-[11px] text-neutral-400 leading-snug">
-                      🤖 Ditentukan otomatis oleh Sub-Agent 1 & 2 (TikTok 9:16 / Reels / Google) berdasarkan analisis demografi pasar.
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white">Klasifikasi Kategori & Saluran Iklan</span>
+                        <span className="text-[10px] font-black uppercase text-rose-400 font-mono px-1.5 py-0.2 rounded bg-rose-950/40 border border-rose-500/30">
+                          100% OTONOM
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 mt-0.5 leading-snug">
+                        AI Sub-Agent 1 & 2 secara otomatis mendeteksi kategori pasar dan memilih platform iklan paling menguntungkan (TikTok / Reels / Google).
+                      </p>
+                    </div>
                   </div>
                 </div>
 
