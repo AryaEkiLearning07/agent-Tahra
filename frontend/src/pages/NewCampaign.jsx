@@ -575,10 +575,10 @@ export default function NewCampaign() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase text-white tracking-wide">
-                    Live Unit Economics
+                    Kalkulator Keuntungan Produk (Margin Profit)
                   </h3>
                   <p className="text-[11px] text-neutral-400">
-                    Evaluasi kelayakan anti-boncos
+                    Simulasi laba per barang agar iklan aman dari risiko rugi (anti-boncos)
                   </p>
                 </div>
               </div>
@@ -588,7 +588,7 @@ export default function NewCampaign() {
                   <div className="p-4 rounded-xl bg-neutral-900/80 border border-neutral-800">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-xs font-bold text-neutral-400 uppercase">
-                        Margin Laba Kotor
+                        Persentase Keuntungan (Margin)
                       </span>
                       <span
                         className="text-xl font-black font-mono"
@@ -599,11 +599,15 @@ export default function NewCampaign() {
                     </div>
 
                     <div className="flex justify-between items-center text-xs text-neutral-400 mt-2 pt-2 border-t border-neutral-800/80">
-                      <span>Nominal Profit / Unit:</span>
-                      <span className="font-bold text-white font-mono">
+                      <span>Laba Bersih Per Barang Terjual:</span>
+                      <span className="font-bold text-emerald-400 font-mono text-sm">
                         {formatRp(marginData.marginValue)}
                       </span>
                     </div>
+
+                    <p className="text-[10px] text-neutral-500 mt-2">
+                      Dihitung dari: Harga Jual ({formatRp(form.harga_jual || 0)}) dikurangi Modal/HPP ({formatRp(form.hpp || 0)}).
+                    </p>
                   </div>
 
                   {/* Status Box */}
@@ -620,19 +624,19 @@ export default function NewCampaign() {
                       <strong className="block font-black uppercase mb-0.5">
                         {marginData.label}
                       </strong>
-                      <span>
+                      <span className="leading-relaxed">
                         {marginData.status === 'VETO'
-                          ? 'Perhatian: Margin di bawah 20% membuat iklan berisiko pasti rugi. Sub-Agent 2 akan memblokir eksekusi otomatis.'
+                          ? 'Perhatian: Keuntungan produk Anda di bawah 20%, terlalu tipis untuk biaya iklan. Sub-Agent AI akan memblokir eksekusi agar modal Anda tidak habis sia-sia.'
                           : marginData.status === 'WARNING'
-                          ? 'Margin mencukupi namun memiliki ruang kecil untuk biaya CPA iklan.'
-                          : 'Margin sangat sehat! Ideal untuk diiklankan secara agresif di platform digital.'}
+                          ? 'Keuntungan produk cukup, namun perlu pengawasan ketat pada biaya per klik (CPA).'
+                          : 'Keuntungan sangat sehat (>30%)! Produk ini sangat ideal dan aman untuk diiklankan secara agresif.'}
                       </span>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="py-8 text-center text-neutral-500 text-xs font-medium">
-                  Isi Harga Jual dan HPP untuk melihat simulasi kalkulasi margin profit secara instan.
+                  Tuliskan harga jual dan modal produk Anda di kotak prompt untuk melihat simulasi keuntungan secara instan.
                 </div>
               )}
             </Card>
@@ -641,26 +645,26 @@ export default function NewCampaign() {
             <Card className="p-6 bg-neutral-950/60 border-neutral-900 text-xs text-neutral-300">
               <h4 className="text-xs font-black uppercase tracking-wider text-white mb-3 flex items-center gap-1.5">
                 <CreditCard className="w-4 h-4 text-rose-500" />
-                Alokasi Saldo Iklan Transparan
+                Rincian Pembagian Saldo Deposit Anda
               </h4>
 
-              <div className="flex flex-col gap-2 p-3 bg-neutral-900/80 rounded-xl border border-neutral-800 mb-3">
+              <div className="flex flex-col gap-2 p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-800 mb-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-400">Total Saldo Deposit:</span>
+                  <span className="text-neutral-400">Total Saldo yang Anda Depositkan:</span>
                   <span className="font-bold text-white font-mono">{formatRp(budgetNum)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-400">1. Iklan Murni (90%):</span>
+                <div className="flex justify-between items-center text-xs pt-2 border-t border-neutral-800/80">
+                  <span className="text-neutral-300 font-medium">1. Saldo Tayang Iklan Murni (90%):</span>
                   <span className="font-bold text-emerald-400 font-mono">{formatRp(adSpendPure)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-400">2. Jasa Optimasi AI (10%):</span>
+                  <span className="text-neutral-300 font-medium">2. Biaya Layanan 5 Agen AI (10%):</span>
                   <span className="font-bold text-rose-400 font-mono">{formatRp(aiFee)}</span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-neutral-500 leading-relaxed">
-                Biaya manajemen 10% mencakup seluruh analisis pasar, A/B testing naskah video 15s, prompt visual, dan pengawasan real-time anti-boncos 24/7.
+              <p className="text-[11px] text-neutral-400 leading-relaxed">
+                💡 <strong>Penjelasan Sederhana:</strong> Dari saldo Anda, <strong>90%</strong> langsung dipakai membeli tayangan iklan di TikTok/Instagram untuk mendatangkan pembeli. <strong>10%</strong> sisanya adalah biaya operasional sistem AI untuk meriset pasar, menulis naskah video, dan menjaga iklan dari risiko rugi 24/7.
               </p>
             </Card>
           </div>
