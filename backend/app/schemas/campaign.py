@@ -1,13 +1,18 @@
+import uuid
+from datetime import datetime, timezone
 from typing import List, Optional, Literal, Dict, Any, Union
 from pydantic import BaseModel, Field, field_validator
 
 class CampaignCreate(BaseModel):
-    product_name: str = Field(..., min_length=2, max_length=255, description="Nama lengkap produk UMKM")
+    product_name: str = Field(..., min_length=2, max_length=255, description="Nama lengkap produk / niche UMKM")
+    niche: Optional[str] = Field(default=None, description="Spesifikasi niche/kategori usaha")
+    lokasi: Optional[str] = Field(default="Indonesia", description="Kota atau target wilayah pemasaran")
     harga_jual: int = Field(..., gt=0, description="Harga jual produk ke konsumen")
     hpp: int = Field(..., gt=0, description="Harga Pokok Penjualan / Modal per unit")
-    budget_harian: int = Field(..., ge=10000, description="Budget iklan harian dalam Rupiah")
+    budget_harian: int = Field(default=100000, ge=10000, description="Budget iklan harian dalam Rupiah")
     kategori: str = Field(default="Fisik", description="Kategori produk")
     platform: Optional[str] = Field(default="TikTok", description="Preferensi platform awal")
+    custom_usp: Optional[str] = Field(default=None, description="Input manual klaim keunggulan/USP dari pemilik bisnis")
 
     @field_validator("hpp")
     @classmethod
@@ -17,51 +22,155 @@ class CampaignCreate(BaseModel):
             raise ValueError("HPP tidak boleh lebih besar atau sama dengan Harga Jual.")
         return v
 
-# --- STRICT EMPIRICAL SUB-AGENT 1 SCHEMAS (DEEP MARKET INTELLIGENCE & SEO) ---
+    def get_effective_niche(self) -> str:
+        if self.niche and self.niche.strip():
+            return self.niche.strip()
+        return self.product_name.strip()
 
-class MarketSegmentation(BaseModel):
-    demographics: str = Field(default="Pria & Wanita 20-35 tahun, pekerja/mahasiswa", description="Rentang usia, pekerjaan, tingkat pengeluaran")
-    geographics: str = Field(default="Kota Tier 1 & Kota Berkembang di Indonesia", description="Kesesuaian kota/wilayah")
-    psychographics: str = Field(default="Gaya hidup, rutinitas harian, dan kebiasaan transaksi", description="Psikografi dan kebiasaan")
+    def get_effective_lokasi(self) -> str:
+        if self.lokasi and self.lokasi.strip():
+            return self.lokasi.strip()
+        return "Indonesia"
 
-class PainPointAngle(BaseModel):
-    type: str = Field(default="Functional", description="Sudut masalah: Financial, Functional, atau Emotional")
-    problem: str = Field(..., description="Deskripsi spesifik masalah yang dialami")
+class Agent1ResearchRequest(BaseModel):
+    niche: str = Field(..., min_length=1, max_length=80, description="Niche produk/usaha")
+    lokasi: str = Field(default="Indonesia", min_length=1, max_length=120, description="Lokasi/kota")
+    harga_jual: Optional[int] = Field(default=None, gt=0, description="Estimasi harga jual jika sudah ditentukan")
+    hpp: Optional[int] = Field(default=None, gt=0, description="Estimasi modal / HPP jika sudah ditentukan")
+    kategori: Optional[str] = Field(default=None, description="Kategori produk")
+    custom_usp: Optional[str] = Field(default=None, description="Klaim keunggulan dari pemilik bisnis jika ada")
 
-class CompetitorTierItem(BaseModel):
-    competitor_name: str = Field(..., description="Nama kompetitor / kebiasaan lama")
-    tier: str = Field(default="Direct", description="Tipe kompetitor: Direct atau Indirect")
-    weakness: str = Field(..., description="Kelemahan atau celah yang bisa dimanfaatkan")
+# --- STRICT SCHEMA DRAFT 2020-12 AGENT 1: DEEP MARKET RESEARCH ---
 
-# SUB-AGENT 1: Deep Market Analyst & SEO Specialist
-class Agent1MarketResearchOutput(BaseModel):
-    product_name: str = Field(default="Produk / Layanan")
-    market_segmentation: MarketSegmentation = Field(default_factory=MarketSegmentation)
-    search_intent_features: List[str] = Field(default_factory=list, description="Kata kunci dan fitur yang sering dicari")
-    pain_points: List[PainPointAngle] = Field(default_factory=list, description="Masalah konsumen dari 3 sudut (Financial, Functional, Emotional)")
-    competitor_analysis: List[CompetitorTierItem] = Field(default_factory=list, description="Analisis kompetitor Direct & Indirect")
-    unique_selling_proposition: str = Field(default="Pernyataan keunggulan produk konkret bebas klaim kosong", description="USP terverifikasi")
-    data_foundation: str = Field(default="Analisis pasar empiris mendalam berbasis data lokal Indonesia.")
+class HargaPasarRange(BaseModel):
+    min: float = Field(..., ge=0, description="Harga pasar minimum")
+    max: float = Field(..., ge=0, description="Harga pasar maksimum")
 
-    # Backward compatibility properties
+class KeywordVolumeItem(BaseModel):
+    keyword: str = Field(..., min_length=1, description="Kata kunci pencarian")
+    volume_bulanan: int = Field(..., ge=0, description="Volume pencarian bulanan")
+    arah_tren: Literal["naik", "turun", "stabil"] = Field(..., description="Arah tren pencarian")
+    delta_persen_3bulan: float = Field(..., description="Persentase pertumbuhan tren 3 bulan terakhir")
+    sumber: Literal["google_trends", "google_keyword_planner"] = Field(..., description="Sumber data keyword")
+
+class MarketSizing(BaseModel):
+    estimasi_pesaing_radius_5km: int = Field(..., ge=0, description="Jumlah estimasi pesaing dalam radius 5km")
+    harga_pasar_rp_per_kg: HargaPasarRange = Field(..., description="Rentang harga pasar per kg atau per unit")
+    keyword_volume: List[KeywordVolumeItem] = Field(..., min_length=1, description="Daftar volume keyword utama")
+
+class CompetitorItem(BaseModel):
+    nama: str = Field(..., min_length=1, description="Nama kompetitor")
+    tipe: Literal["direct", "indirect"] = Field(..., description="Tipe kompetitor")
+    rating: float = Field(..., ge=0, le=5, description="Rating bintang 0-5")
+    jumlah_review: int = Field(..., ge=0, description="Jumlah total ulasan konsumen")
+    harga_rp_per_kg: float = Field(..., ge=0, description="Harga produk per kg / unit")
+    aktif_iklan_di: List[Literal["meta", "tiktok", "google"]] = Field(default_factory=list, description="Platform tempat kompetitor beriklan aktif")
+    celah_kelemahan: str = Field(..., max_length=200, description="Celah kelemahan kompetitor")
+    confidence_score: float = Field(..., ge=0, le=1, description="Tingkat kepercayaan data 0-1")
+    sumber: Literal["google_maps", "meta_ad_library", "tiktok_creative_center", "website_kompetitor"] = Field(..., description="Sumber data kompetitor")
+
+class PainPointItem(BaseModel):
+    angle: Literal["financial", "functional", "emotional"] = Field(..., description="Sudut pandang masalah")
+    insight: str = Field(..., max_length=200, description="Deskripsi keluhan/masalah konsumen")
+    frekuensi_skor: float = Field(..., ge=0, le=1, description="Skor frekuensi kemunculan topik dalam review")
+    sumber: Literal["google_maps_reviews", "instagram_komentar", "tiktok_komentar", "forum_lokal"] = Field(..., description="Sumber keluhan")
+
+class USPItem(BaseModel):
+    klaim: str = Field(..., max_length=150, description="Klaim USP keunggulan utama")
+    metode_verifikasi: str = Field(..., max_length=200, description="Bukti verifikasi terhadap jumlah kompetitor")
+    confidence_score: float = Field(..., ge=0, le=1, description="Skor kepercayaan verifikasi USP")
+
+class PlatformDominanItem(BaseModel):
+    platform: Literal["instagram", "tiktok", "facebook", "google_search"] = Field(..., description="Nama platform")
+    persen_estimasi: float = Field(..., ge=0, le=100, description="Estimasi persentase penetrasi pengguna")
+    sumber: str = Field(..., min_length=1, description="Sumber riset (APJII / We Are Social)")
+
+class AudienceItem(BaseModel):
+    platform_dominan: List[PlatformDominanItem] = Field(..., min_length=1, description="Distribusi platform pengguna")
+    funnel_stage_dominan: Literal["awareness", "consideration", "decision"] = Field(..., description="Tahapan funnel paling dominan")
+
+class CostRange(BaseModel):
+    min: float = Field(..., ge=0, description="Batas bawah biaya")
+    max: float = Field(..., ge=0, description="Batas atas biaya")
+
+class BenchmarkIklan(BaseModel):
+    meta_ads_cpm_rp: CostRange = Field(..., description="Benchmark CPM Meta Ads (Rp)")
+    google_ads_cpc_rp: CostRange = Field(..., description="Benchmark CPC Google Ads (Rp)")
+
+class CreativeInspirationItem(BaseModel):
+    platform: Literal["meta", "tiktok"] = Field(..., description="Platform iklan inspirasi")
+    format: Literal["video_ugc", "video_studio", "gambar_before_after", "gambar_testimoni"] = Field(..., description="Format konten iklan")
+    pola_hook: str = Field(..., max_length=100, description="Pola hook pembuka iklan")
+    sumber: Literal["meta_ad_library", "tiktok_creative_center"] = Field(..., description="Sumber inspirasi iklan")
+
+# COMPLETE SUB-AGENT 1 DEEP MARKET RESEARCH MODEL (Complies with agent1_output_schema.json)
+class Agent1DeepMarketResearchOutput(BaseModel):
+    schema_version: Literal["1.0.0"] = "1.0.0"
+    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    generated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    niche: str = Field(..., min_length=1, max_length=80)
+    lokasi: str = Field(..., min_length=1, max_length=120)
+    market_sizing: MarketSizing
+    kompetitor: List[CompetitorItem] = Field(..., min_length=1)
+    pain_points: List[PainPointItem] = Field(..., min_length=1)
+    usp: USPItem
+    audiens: AudienceItem
+    benchmark_iklan: BenchmarkIklan
+    creative_inspiration: List[CreativeInspirationItem] = Field(..., min_length=1)
+
+    # Backward compatibility properties for downstream agents & legacy views
     @property
-    def usp(self) -> str:
-        return self.unique_selling_proposition
+    def product_name(self) -> str:
+        return self.niche
+
+    @property
+    def unique_selling_proposition(self) -> str:
+        return self.usp.klaim
 
     @property
     def target_demography(self) -> str:
-        return f"{self.market_segmentation.demographics} ({self.market_segmentation.geographics})"
+        top_platform = self.audiens.platform_dominan[0].platform if self.audiens.platform_dominan else "Digital"
+        return f"Pengguna Aktif {top_platform.title()} di wilayah {self.lokasi}"
 
     @property
     def audience_psychography(self) -> str:
-        return self.market_segmentation.psychographics
+        return f"Konsumen {self.niche} pada funnel {self.audiens.funnel_stage_dominan} yang mengutamakan bukti kualitas dan kecepatan respon."
 
     @property
     def competitor_proxy(self) -> str:
-        if self.competitor_analysis:
-            return f"{self.competitor_analysis[0].competitor_name} ({self.competitor_analysis[0].tier})"
+        if self.kompetitor:
+            return f"{self.kompetitor[0].nama} ({self.kompetitor[0].tipe})"
         return "Kompetitor Pasar Indonesia"
 
+    @property
+    def search_intent_features(self) -> List[str]:
+        return [item.keyword for item in self.market_sizing.keyword_volume]
+
+    @property
+    def competitor_analysis(self) -> List[Dict[str, Any]]:
+        return [
+            {
+                "competitor_name": c.nama,
+                "tier": "Direct" if c.tipe == "direct" else "Indirect",
+                "weakness": c.celah_kelemahan,
+                "rating": c.rating,
+                "review_count": c.jumlah_review,
+                "confidence_score": c.confidence_score,
+                "is_advertising": len(c.aktif_iklan_di) > 0,
+                "active_platforms": c.aktif_iklan_di
+            }
+            for c in self.kompetitor
+        ]
+
+    @property
+    def data_foundation(self) -> str:
+        return (
+            f"Riset pasar empiris di {self.lokasi}: dianalisis terhadap {self.market_sizing.estimasi_pesaing_radius_5km} "
+            f"pesaing radius 5km dan {len(self.kompetitor)} kompetitor utama dengan verifikasi ulasan Google Maps, Meta & TikTok."
+        )
+
+# Alias for Agent 1 Output
+Agent1MarketResearchOutput = Agent1DeepMarketResearchOutput
 
 
 # --- ELITE PERFORMANCE MARKETING ARCHITECTURE (SUB-AGENT 2) ---
@@ -150,7 +259,7 @@ class Agent5QAAndDeployOutput(BaseModel):
 # COMPREHENSIVE PIPELINE RESULT
 class MultiAgentPipelineResult(BaseModel):
     status: str = "COMPLETED"
-    agent1_research: Agent1MarketResearchOutput
+    agent1_research: Agent1DeepMarketResearchOutput
     agent2_strategy: Agent2StrategyOutput
     agent3_creative: Optional[Agent3CopywriterOutput] = None
     agent4_visual: Optional[Agent4VisualOutput] = None
@@ -168,3 +277,4 @@ class MultiAgentPipelineResult(BaseModel):
     @property
     def roas_report(self):
         return self.agent5_deploy.roas_report if self.agent5_deploy else None
+

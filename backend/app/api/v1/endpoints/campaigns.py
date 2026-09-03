@@ -5,10 +5,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from app.core.database import get_db
 from app.models.campaign import CampaignModel
-from app.schemas.campaign import CampaignCreate, MultiAgentPipelineResult
+from app.schemas.campaign import (
+    CampaignCreate,
+    Agent1ResearchRequest,
+    Agent1DeepMarketResearchOutput,
+    MultiAgentPipelineResult
+)
 from app.services.orchestrator import orchestrator
+from app.services.agent1_service import agent1_service
 
 router = APIRouter()
+
+@router.post("/agent1/research", response_model=Agent1DeepMarketResearchOutput)
+async def run_agent1_deep_research(
+    payload: Agent1ResearchRequest
+):
+    """
+    Standalone Sub-Agent 1 Deep Market Research endpoint.
+    Performs real data tool calls and generates JSON matching agent1_output_schema.json.
+    """
+    return await agent1_service.run_market_research(
+        niche=payload.niche,
+        lokasi=payload.lokasi,
+        harga_jual=payload.harga_jual,
+        hpp=payload.hpp,
+        custom_usp=payload.custom_usp,
+        kategori=payload.kategori
+    )
 
 @router.post("/start-agent", response_model=MultiAgentPipelineResult)
 @router.post("/campaigns/simulate", response_model=MultiAgentPipelineResult)
@@ -16,6 +39,7 @@ async def start_agent_pipeline(
     payload: CampaignCreate,
     db: AsyncSession = Depends(get_db)
 ):
+
     """
     Trigger the 5-Phase Multi-Agent Pipeline.
     Evaluates unit economics, generates creatives, and calculates ROAS.
@@ -50,7 +74,7 @@ async def start_agent_pipeline(
         status=status_str,
         roas=roas_str,
         margin_percentage=margin_pct,
-        result_json=json.dumps(result.model_dump())
+        result_json=json.dumps(result.model_dump(mode="json"))
     )
     db.add(campaign_entry)
     await db.commit()

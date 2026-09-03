@@ -3,9 +3,11 @@ import logging
 from typing import Dict, Any
 from app.services.llm_gateway import llm_gateway
 from app.services.roas_calculator import roas_calculator
+from app.services.agent1_service import agent1_service
 from app.services.market_intelligence import market_intelligence_engine
 from app.schemas.campaign import (
     CampaignCreate,
+    Agent1DeepMarketResearchOutput,
     Agent1MarketResearchOutput,
     Agent2StrategyOutput,
     Agent3CopywriterOutput,
@@ -13,14 +15,13 @@ from app.schemas.campaign import (
     Agent5QAAndDeployOutput,
     FinancialMetrics,
     MultiAgentPipelineResult,
-    CompetitorEmpiricalBenchmark,
-    EmpiricalBuyerPersona,
     VideoScriptSchema,
     ChannelSuitabilityItem,
     MultiChannelBudgetSplit
 )
 
 logger = logging.getLogger("tahra.orchestrator")
+
 
 class MultiAgentOrchestrator:
     """
@@ -30,94 +31,38 @@ class MultiAgentOrchestrator:
     """
 
     async def run_pipeline(self, input_data: CampaignCreate) -> MultiAgentPipelineResult:
-        logger.info(f"🚀 [PIPELINE START] Processing product: {input_data.product_name}")
-
-        # Synthesize fallback market dossier from local RAG engine
-        dossier = market_intelligence_engine.synthesize_market_dossier(
-            product_name=input_data.product_name,
-            category=input_data.kategori,
-            harga_jual=input_data.harga_jual
-        )
+        effective_niche = input_data.get_effective_niche()
+        effective_lokasi = input_data.get_effective_lokasi()
+        logger.info(f"🚀 [PIPELINE START] Processing product: {input_data.product_name} (Niche: '{effective_niche}', Lokasi: '{effective_lokasi}')")
 
         # =========================================================================
-        # SUB-AGENT 1: Market & Product Researcher (The Explorer)
+        # SUB-AGENT 1: Deep Market & Competitor Intelligence Researcher (The Explorer)
         # =========================================================================
-        agent1_system = """
-        ROLE: Elite Market Researcher & SEO Specialist for Indonesian UMKM.
-        TASK: Provide deep, empirical, and actionable market data based on the product.
-
-        STRICT RULES:
-        1. Do not give general statements. Be specific with real Indonesian market realities.
-        2. Competitors must be categorized by tier (Direct vs Indirect) with specific weaknesses we can exploit.
-        3. Pain points must cover 3 different angles: Financial, Functional, and Emotional.
-        4. Extract features based on common high-search-volume keywords in Indonesia.
-        5. Formulate 1 strong, concrete USP free of empty claims.
-
-        OUTPUT: Respond ONLY with valid JSON. No markdown.
-        JSON Schema:
-        {
-          "market_segmentation": {
-            "demographics": "Specific age bracket, occupation, income/spending level",
-            "geographics": "Specific city/region suitability (Tier 1 city, suburban, regional, etc)",
-            "psychographics": "Lifestyle, daily routine context, and transaction behavior"
-          },
-          "search_intent_features": [
-            "Feature 1 (based on high-intent Indonesian search queries)",
-            "Feature 2",
-            "Feature 3",
-            "Feature 4"
-          ],
-          "pain_points": [
-            {"type": "Financial", "problem": "Specific financial burden/cost of inaction"},
-            {"type": "Functional", "problem": "Specific functional friction in daily life"},
-            {"type": "Emotional", "problem": "Specific anxiety, hesitation, or social trigger"}
-          ],
-          "competitor_analysis": [
-            {"competitor_name": "Direct Competitor Name", "tier": "Direct", "weakness": "Specific weakness/friction point we can exploit"},
-            {"competitor_name": "Indirect Competitor / Old Habit", "tier": "Indirect", "weakness": "Why this alternative fails to satisfy"}
-          ],
-          "unique_selling_proposition": "1 strong, concrete USP sentence based on the above data, free of empty claims.",
-          "data_foundation": "Concise empirical market reasoning."
-        }
-        """
-        agent1_user = f"Nama / Deskripsi Produk: {input_data.product_name}\nHarga Jual: Rp {input_data.harga_jual:,}\nModal/HPP: Rp {input_data.hpp:,}\nKategori: {input_data.kategori}\nPlatform Preferensi: {input_data.platform}".replace(",", ".")
-
         try:
-            raw_agent1 = await llm_gateway.execute_structured_agent(
-                agent_name="Sub-Agent 1 (The Explorer)",
-                system_prompt=agent1_system,
-                user_message=agent1_user,
-                temperature=0.3
+            agent1_res = await agent1_service.run_market_research(
+                niche=effective_niche,
+                lokasi=effective_lokasi,
+                harga_jual=input_data.harga_jual,
+                hpp=input_data.hpp,
+                custom_usp=input_data.custom_usp,
+                kategori=input_data.kategori
             )
-            raw_agent1["product_name"] = input_data.product_name
-            agent1_res = Agent1MarketResearchOutput(**raw_agent1)
         except Exception as e:
-            logger.warning(f"⚠️ Engaging RAG Dossier fallback for Sub-Agent 1: {e}")
-            agent1_res = Agent1MarketResearchOutput(
-                product_name=input_data.product_name,
-                market_segmentation=MarketSegmentation(
-                    demographics=f"Pria & Wanita usia 22-38 tahun, pekerja/mahasiswa dengan daya beli Rp {input_data.harga_jual:,}/transaksi".replace(",", "."),
-                    geographics="Kota Tier 1 & Area Urban/Suburban di Indonesia",
-                    psychographics="Aktif menggunakan media sosial, mengutamakan kepraktisan, dan mencari ulasan terpercaya sebelum membeli"
-                ),
-                search_intent_features=[
-                    f"Rekomendasi {input_data.product_name} terdekat",
-                    f"Harga {input_data.product_name} murah berkualitas",
-                    f"Cara pesan {input_data.product_name} cepat",
-                    f"Review dan testimoni {input_data.product_name}"
-                ],
-                pain_points=[
-                    PainPointAngle(type="Financial", problem=f"Biaya solusi konvensional di pasar terlalu mahal tanpa jaminan hasil yang sebanding dengan harga Rp {input_data.harga_jual:,}".replace(",", ".")),
-                    PainPointAngle(type="Functional", problem=f"Sulit menemukan penyedia yang cepat tanggap, pengerjaan lama, dan kualitas tidak konsisten"),
-                    PainPointAngle(type="Emotional", problem=f"Rasa khawatir dan cemas tertipu atau kecewa dengan hasil akhir produk pasaran")
-                ],
-                competitor_analysis=[
-                    CompetitorTierItem(competitor_name="Brand / Toko Konvensional Pasaran", tier="Direct", weakness="Harga mahal, respon lambat, dan tidak ada garansi kepuasan"),
-                    CompetitorTierItem(competitor_name="Solusi Mandiri / Alternatif Tradisional", tier="Indirect", weakness="Membutuhkan banyak waktu dan tenaga tanpa hasil optimal")
-                ],
-                unique_selling_proposition=f"{input_data.product_name} memberikan solusi berstandar tinggi dengan jaminan kepuasan dan efisiensi biaya terbaik.",
-                data_foundation="Analisis berbasis riset tren konsumen UMKM Indonesia dan benchmarking kompetitor."
+            logger.error(f"⚠️ Agent 1 service error: {e}. Generating fallback contract.")
+            agent1_res = agent1_service._build_deterministic_agent1_contract(
+                niche=effective_niche,
+                lokasi=effective_lokasi,
+                total_competitors=20,
+                min_price=float(input_data.harga_jual * 0.8),
+                max_price=float(input_data.harga_jual * 1.4),
+                keywords=[],
+                competitors_raw=[],
+                custom_usp=input_data.custom_usp,
+                audience=APJII_WE_ARE_SOCIAL_LOOKUP["default"],
+                ad_benchmark=INDUSTRY_AD_BENCHMARKS["default"],
+                creative_inspirations=[]
             )
+            agent1_res = Agent1DeepMarketResearchOutput(**agent1_res)
 
         # =========================================================================
         # SUB-AGENT 2: Strategy Architect (The Planner)
@@ -126,6 +71,7 @@ class MultiAgentOrchestrator:
             harga_jual=input_data.harga_jual,
             hpp=input_data.hpp
         )
+
 
         agent2_system = """
         You are Sub-Agent 2 (The Planner), an Elite Digital Marketing Strategy Architect for Indonesian Businesses.
@@ -241,14 +187,17 @@ class MultiAgentOrchestrator:
           "data_foundation": str
         }
         """
+        pain_points_text = ", ".join([f"{p.angle.upper()}: {p.insight}" for p in agent1_res.pain_points])
+        effective_usp = agent1_res.usp.klaim if hasattr(agent1_res.usp, 'klaim') else str(agent1_res.usp)
         agent3_user = (
-            f"Produk: {agent1_res.product_name}\n"
-            f"USP: {agent1_res.usp}\n"
-            f"Pain Points: {', '.join(agent1_res.pain_points)}\n"
+            f"Produk: {input_data.product_name}\n"
+            f"USP: {effective_usp}\n"
+            f"Pain Points: {pain_points_text}\n"
             f"Platform: {agent2_res.platform}\n"
             f"Format Iklan: {agent2_res.format_iklan}\n"
-            f"Target: {agent1_res.target_demography}"
+            f"Target: {agent1_res.target_demography or 'Konsumen Lokal Indonesia'}"
         )
+
 
         agent4_system = """
         You are Sub-Agent 4 (The Creator), a World-class Art Director & Visual Prompt Designer.
@@ -268,10 +217,10 @@ class MultiAgentOrchestrator:
         }
         """
         agent4_user = (
-            f"Product: {agent1_res.product_name}\n"
+            f"Product: {input_data.product_name}\n"
             f"Aspect Ratio: {agent2_res.aspect_ratio}\n"
             f"Platform: {agent2_res.platform}\n"
-            f"USP: {agent1_res.usp}"
+            f"USP: {effective_usp}"
         )
 
         try:
@@ -357,7 +306,7 @@ class MultiAgentOrchestrator:
 
         qc_notes = (
             f"QA Passed: Rasio visual ({agent4_res.aspect_ratio}) sinkron dengan platform ({agent2_res.platform}). "
-            f"Pesan headline konsisten dengan USP '{agent1_res.usp}'. Proyeksi ROAS ({financial_metrics.roas_percentage}%) siap dieksekusi."
+            f"Pesan headline konsisten dengan USP '{effective_usp}'. Proyeksi ROAS ({financial_metrics.roas_percentage}%) siap dieksekusi."
         )
 
         agent5_res = Agent5QAAndDeployOutput(

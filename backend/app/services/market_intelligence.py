@@ -362,9 +362,10 @@ class MarketIntelligenceEngine:
                     }
                 ],
                 "data_foundation": f"Permintaan terhadap {product_name} memiliki basis pencarian aktif di Google dan interaksi konversi tinggi di media sosial."
-            }        }
+            }
 
     def synthesize_strategy_matrix(self, product_name: str, category: str, margin_pct: float, margin_val: int) -> Dict[str, Any]:
+
         """
         Sub-Agent 2 Performance Marketing Architecture:
         Evaluates 5 major advertising channels and synthesizes optimal attack angle & budget split.

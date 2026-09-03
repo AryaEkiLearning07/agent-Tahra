@@ -37,7 +37,12 @@ export default function NewCampaign() {
   const [error, setError] = useState('');
 
   // Quick Preset Examples for Instant Testing
+  // Quick Preset Examples for Instant Testing
   const presets = [
+    {
+      label: '🧺 Laundry Kiloan',
+      text: 'Laundry Kiloan di Surabaya. Layanan cuci setrika kilat wangi 24 jam dengan parfum premium dan garansi anti-luntur. Tarif Rp 6.000 per kg.',
+    },
     {
       label: '🛠️ Jasa Service AC',
       text: 'Jasa Service AC di Mojokerto. Melayani cuci AC, perbaikan bocor, dan tambah freon bergaransi 30 hari. Tarif mulai Rp 75.000, respon cepat 24 jam.',
@@ -48,11 +53,11 @@ export default function NewCampaign() {
     },
     {
       label: '🌶️ Sambal Kemasan UMKM',
-      text: 'Sambal Cumi Asin Pedas Kemasan Pouch 150g. Menggunakan cumi segar tanpa pengawet kimia, tahan 3 bulan, harga Rp 28.000 per pouch.',
+      text: 'Sambal Cumi Asin Pedas Kemasan Pouch 150g di Jakarta. Menggunakan cumi segar tanpa pengawet kimia, tahan 3 bulan, harga Rp 28.000 per pouch.',
     },
     {
       label: '📸 Jasa Foto Produk',
-      text: 'Jasa Foto Produk Makanan & Minuman Cafe di Jakarta. Paket Foto Menu & Video Reels Rp 350.000 per sesi.',
+      text: 'Jasa Foto Produk Makanan & Minuman Cafe di Bandung. Paket Foto Menu & Video Reels Rp 350.000 per sesi.',
     },
   ];
 
@@ -81,15 +86,22 @@ export default function NewCampaign() {
     }
     const detectedHpp = Math.max(10000, Math.round(detectedPrice * 0.4));
 
+    // Auto-detect location if mentioned (e.g., "di Surabaya", "di Mojokerto", "Jakarta", etc.)
+    const locMatch = rawText.match(/\b(?:di|kota|kabupaten|area|wilayah)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)\b/i);
+    const detectedLokasi = locMatch ? locMatch[1].trim() : 'Surabaya';
+    const detectedNiche = rawText.split(/(?:\s+di\s+|Rp|\b\d+\s*rb|[,.])/i)[0].trim() || cleanTitle;
+
     const newId = Date.now();
     const initialCampaign = {
       id: newId,
       product_name: rawText,
+      niche: detectedNiche,
+      lokasi: detectedLokasi,
       platform: 'TikTok',
       budget: 100000,
       harga_jual: detectedPrice,
       hpp: detectedHpp,
-      kategori: rawText.toLowerCase().includes('jasa') ? 'Jasa' : 'Fisik',
+      kategori: rawText.toLowerCase().includes('jasa') || rawText.toLowerCase().includes('service') ? 'Jasa' : 'Fisik',
       status: 'Running',
       created_at: new Date().toISOString(),
     };
@@ -99,16 +111,20 @@ export default function NewCampaign() {
         campaign: initialCampaign,
         campaignInput: {
           product_name: rawText,
+          niche: detectedNiche,
+          lokasi: detectedLokasi,
           harga_jual: detectedPrice,
           hpp: detectedHpp,
           budget_harian: 100000,
-          kategori: rawText.toLowerCase().includes('jasa') ? 'Jasa' : 'Fisik',
+          kategori: rawText.toLowerCase().includes('jasa') || rawText.toLowerCase().includes('service') ? 'Jasa' : 'Fisik',
           platform: 'TikTok',
+          custom_usp: rawText.length > 50 ? rawText.slice(0, 150) : null
         },
         isLiveGenerating: true,
       },
     });
   };
+
 
   return (
     <div className="bg-main min-h-screen flex flex-col justify-between">

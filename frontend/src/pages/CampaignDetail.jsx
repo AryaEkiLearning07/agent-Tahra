@@ -46,6 +46,8 @@ import { Alert } from '../components/ui/Alert';
 import { formatRp, formatDate, formatPercent } from '../utils/formatters';
 import { cn } from '../utils/cn';
 import { runAgentPipeline, saveCampaign, getCampaigns } from '../services/api';
+import { Agent1DashboardView } from '../components/research/Agent1DashboardView';
+import { Agent1ThinkingProcess } from '../components/research/Agent1ThinkingProcess';
 
 export default function CampaignDetail() {
   const { id } = useParams();
@@ -471,162 +473,27 @@ export default function CampaignDetail() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="px-2.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-black font-mono">
-                          SUB-AGENT 1: DEEP MARKET ANALYST
+                          SUB-AGENT 1: DEEP MARKET RESEARCH & COMPETITOR INTELLIGENCE
                         </span>
-                        <span className="text-xs text-neutral-400 font-medium">Intelijen Pasar Empiris, Segmentasi 3D & Analisis Pesaing Bertingkat</span>
+                        <span className="text-xs text-neutral-400 font-medium">Data Nyata Tool Calls • Places API • Ad Library • Schema Contract v1.0.0</span>
                       </div>
                       <h2 className="text-xl font-black text-white uppercase tracking-tight font-heading flex flex-wrap items-center gap-3">
-                        <span>{agent1?.product_name || campaign?.product_name || 'Riset Pasar Produk'}</span>
+                        <span>{agent1?.niche || agent1?.product_name || campaign?.product_name || 'Riset Pasar Produk'}</span>
+                        <span className="text-xs font-mono font-normal text-neutral-400 bg-neutral-900 px-2.5 py-1 rounded-lg border border-neutral-800">
+                          Wilayah: {agent1?.lokasi || campaignInput?.lokasi || 'Indonesia'}
+                        </span>
                       </h2>
                     </div>
                   </div>
 
                   {isGenerating && !agent1 ? (
-                    <div className="py-16 text-center flex flex-col items-center justify-center">
-                      <Loader2 className="w-10 h-10 text-rose-500 animate-spin mb-4" />
-                      <h4 className="text-sm font-bold text-white mb-1">Sub-Agent 1 Sedang Membedah Pasar Empiris...</h4>
-                      <p className="text-xs text-neutral-400 max-w-md">
-                        Menganalisis segmentasi demografis/geografis, masalah finansial/fungsional/emosional, dan celah kelemahan kompetitor.
-                      </p>
-                    </div>
+                    <Agent1ThinkingProcess
+                      niche={agent1?.niche || campaignInput?.niche || campaignInput?.product_name || 'Produk'}
+                      lokasi={agent1?.lokasi || campaignInput?.lokasi || 'Indonesia'}
+                      isLive={isGenerating}
+                    />
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      
-                      {/* 1. SEGMENTASI PASAR 3D */}
-                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex flex-col gap-3">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          1. Segmentasi Pasar 3 Dimensi (3D Segmentation)
-                        </h4>
-                        <div className="flex flex-col gap-2.5">
-                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
-                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Demografi (Usia & Profesi):</span>
-                            <p className="text-xs text-neutral-200 font-medium leading-relaxed">
-                              {agent1?.market_segmentation?.demographics || agent1?.target_demography || 'Pria & Wanita 20-35 tahun, pekerja kantor & mahasiswa'}
-                            </p>
-                          </div>
-
-                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
-                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Geografi (Kesesuaian Wilayah):</span>
-                            <p className="text-xs text-neutral-200 font-medium leading-relaxed">
-                              {agent1?.market_segmentation?.geographics || 'Kota Tier 1 & Area Urban/Suburban Indonesia'}
-                            </p>
-                          </div>
-
-                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
-                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Psikografi (Gaya Hidup & Kebiasaan):</span>
-                            <p className="text-xs text-neutral-300 font-medium leading-relaxed">
-                              {agent1?.market_segmentation?.psychographics || agent1?.audience_psychography || 'Konsumen aktif digital yang memprioritaskan kepraktisan dan bukti testimoni'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. ANALISIS KOMPETITOR BERTINGKAT (DIRECT VS INDIRECT) */}
-                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex flex-col gap-3">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          2. Analisis Kompetitor Bertingkat & Celah Lawan
-                        </h4>
-                        <div className="flex flex-col gap-3">
-                          {(agent1?.competitor_analysis && agent1.competitor_analysis.length > 0
-                            ? agent1.competitor_analysis
-                            : [
-                                { competitor_name: 'Pesaing Langsung (Direct)', tier: 'Direct', weakness: 'Harga mahal, pengerjaan lama, dan respon admin lambat' },
-                                { competitor_name: 'Solusi Tradisional (Indirect)', tier: 'Indirect', weakness: 'Repot mencuci/mengerjakan sendiri tanpa hasil maksimal' }
-                              ]
-                          ).map((comp, idx) => (
-                            <div key={idx} className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 flex flex-col gap-1.5">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-white font-heading">
-                                  {comp.competitor_name}
-                                </span>
-                                <span className={cn(
-                                  'text-[10px] font-black px-2 py-0.5 rounded-md uppercase font-mono',
-                                  comp.tier === 'Direct' ? 'bg-rose-950/80 border border-rose-500/40 text-rose-400' : 'bg-neutral-800 text-neutral-300'
-                                )}>
-                                  {comp.tier} Competitor
-                                </span>
-                              </div>
-                              <div className="text-xs text-neutral-300 leading-relaxed bg-neutral-900/60 p-2.5 rounded-lg border border-neutral-800">
-                                <strong className="text-amber-400 text-[10px] uppercase block mb-0.5">Celah Kelemahan yang Dieksploitasi:</strong>
-                                <span>{comp.weakness}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 3. MASALAH KONSUMEN 3 SUDUT (FINANCIAL, FUNCTIONAL, EMOTIONAL) */}
-                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" />
-                          3. Masalah Konsumen dari 3 Sudut (Pain Points Matrix)
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {(agent1?.pain_points && agent1.pain_points.length > 0 && typeof agent1.pain_points[0] === 'object'
-                            ? agent1.pain_points
-                            : [
-                                { type: 'Financial', problem: 'Biaya solusi pasaran terlalu mahal dan memboroskan anggaran bulanan' },
-                                { type: 'Functional', problem: 'Proses pengerjaan lambat dan kualitas hasil akhir tidak konsisten' },
-                                { type: 'Emotional', problem: 'Kekhawatiran tertipu dan cemas barang rusak atau tidak sesuai harapan' }
-                              ]
-                          ).map((p, i) => (
-                            <div key={i} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800/80 text-xs text-neutral-300 flex flex-col gap-2">
-                              <span className={cn(
-                                'text-[10px] font-black font-mono uppercase px-2 py-0.5 rounded-md w-fit',
-                                p.type === 'Financial' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' :
-                                p.type === 'Functional' ? 'bg-amber-950 text-amber-400 border border-amber-500/40' :
-                                'bg-rose-950 text-rose-400 border border-rose-500/40'
-                              )}>
-                                {p.type} ANGLE
-                              </span>
-                              <span className="leading-relaxed font-medium">{p.problem}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 4. KATA KUNCI MINAT PENCARIAN (SEARCH INTENT FEATURES) */}
-                      {agent1?.search_intent_features && agent1.search_intent_features.length > 0 && (
-                        <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-sky-400 mb-3 flex items-center gap-2">
-                            <Search className="w-4 h-4 text-sky-400" />
-                            4. Minat Pencarian Populer Konsumen Indonesia (High Search Intent)
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                            {agent1.search_intent_features.map((feature, idx) => (
-                              <div key={idx} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-200 flex items-start gap-2">
-                                <span className="text-sky-400 font-bold shrink-0 font-mono">#{idx + 1}</span>
-                                <span className="font-medium">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 5. UNIQUE SELLING PROPOSITION (USP) TERVERIFIKASI */}
-                      <div className="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/30 md:col-span-2 flex flex-col gap-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 font-mono">
-                          5. Unique Selling Proposition (USP) Terverifikasi:
-                        </span>
-                        <p className="text-sm font-black text-white leading-relaxed">
-                          "{agent1?.unique_selling_proposition || agent1?.usp_statement || agent1?.usp || 'Pernyataan keunggulan produk konkret bebas klaim kosong.'}"
-                        </p>
-                      </div>
-
-                      {/* DATA FOUNDATION */}
-                      {agent1?.data_foundation && (
-                        <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 md:col-span-2 text-xs text-neutral-300 flex items-start gap-2.5">
-                          <BrainCircuit className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                          <div>
-                            <strong className="text-rose-300 font-mono text-[10px] uppercase block mb-0.5">Data Foundation Sub-Agent 1:</strong>
-                            <p className="text-neutral-400 text-[11px] leading-relaxed">{agent1.data_foundation}</p>
-                          </div>
-                        </div>
-                      )}
-
-                    </div>
+                    <Agent1DashboardView researchData={agent1} />
                   )}
                 </div>
               )}
