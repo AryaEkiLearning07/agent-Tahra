@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Isolated project namespace to prevent collision with other Docker projects
 name: tahra-platform
 
