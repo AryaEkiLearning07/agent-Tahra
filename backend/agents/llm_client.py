@@ -20,7 +20,7 @@ def execute_structured_agent(agent_name: str, system_prompt: str, user_message: 
     
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile", # Pastikan model sesuai dengan yang ada di Groq
+            model="openai/gpt-oss-120b", # Active verified model on Groq API
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}

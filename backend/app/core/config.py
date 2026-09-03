@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     LLM_API_KEY: Optional[str] = Field(default=None, env="LLM_API_KEY")
     GROQ_API_KEY: Optional[str] = Field(default=None, env="GROQ_API_KEY")
     OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    LLM_MODEL: str = Field(default="llama-3.3-70b-versatile", env="LLM_MODEL")
+    LLM_MODEL: str = Field(default="openai/gpt-oss-120b", env="LLM_MODEL")
     LLM_TIMEOUT: float = 60.0
     LLM_MAX_RETRIES: int = 3
 
