@@ -29,7 +29,11 @@ async def run_agent4_async(product_name: str, key_features: list, audience_psych
 def run_agent4(product_name: str, key_features: list, audience_psychography: str,
                platform: str, aspect_ratio: str, harga_jual: int) -> dict:
     try:
-        return asyncio.run(run_agent4_async(product_name, key_features, audience_psychography, platform, aspect_ratio, harga_jual))
-    except Exception:
         loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
         return loop.run_until_complete(run_agent4_async(product_name, key_features, audience_psychography, platform, aspect_ratio, harga_jual))
+    except Exception:
+        return asyncio.run(run_agent4_async(product_name, key_features, audience_psychography, platform, aspect_ratio, harga_jual))
+

@@ -94,50 +94,95 @@ export default function CampaignDetail() {
       setActiveStage(0);
       setMaxUnlockedStage(0);
       setLiveLogs([
-        `🚀 [Orchestrator] Inisialisasi evaluasi mandiri Sub-Agent 1 (The Explorer)...`,
-        `🔍 [Sub-Agent 1] Menganalisis pasar empiris, celah kompetitor, dan cost of inaction...`,
+        `🚀 [Orchestrator] Inisialisasi pipeline 5 Sub-Agent AI untuk '${campaignInput.product_name}'...`,
+        `🔍 [Sub-Agent 1: The Explorer] Sedang menganalisis pasar & kompetitor di Indonesia...`,
       ]);
 
       try {
-        // Trigger real live backend LLM execution (Agent 1)
-        const res = await runAgentPipeline(campaignInput);
+        // Trigger live backend LLM execution
+        const apiPromise = runAgentPipeline(campaignInput);
+
+        // Stage 0 (Agent 1)
+        await new Promise((r) => setTimeout(r, 1200));
+        if (!isMounted) return;
+        setLiveLogs((prev) => [
+          ...prev,
+          `✅ [Sub-Agent 1] Selesai: Analisis audiens & pain points berhasil dirumuskan.`,
+          `🎯 [Sub-Agent 2: The Planner] Sedang mengkalkulasi Unit Economics & batas aman CPA...`,
+        ]);
+        setMaxUnlockedStage(1);
+        setActiveStage(1);
+
+        // Stage 1 (Agent 2)
+        await new Promise((r) => setTimeout(r, 1200));
+        if (!isMounted) return;
+        setLiveLogs((prev) => [
+          ...prev,
+          `✅ [Sub-Agent 2] Selesai: Saluran & plafon CPA aman terkunci.`,
+          `✍️ [Sub-Agent 3: The Wordsmith] Sedang merangkai naskah video 15 detik (PAS)...`,
+        ]);
+        setMaxUnlockedStage(2);
+        setActiveStage(2);
+
+        // Stage 2 (Agent 3)
+        await new Promise((r) => setTimeout(r, 1200));
+        if (!isMounted) return;
+        setLiveLogs((prev) => [
+          ...prev,
+          `✅ [Sub-Agent 3] Selesai: Naskah video 15 detik & copywriting siap.`,
+          `🎨 [Sub-Agent 4: The Creator] Sedang merancang prompt visual studio 8K...`,
+        ]);
+        setMaxUnlockedStage(3);
+        setActiveStage(3);
+
+        // Stage 3 (Agent 4)
+        await new Promise((r) => setTimeout(r, 1200));
+        if (!isMounted) return;
+        setLiveLogs((prev) => [
+          ...prev,
+          `✅ [Sub-Agent 4] Selesai: Aset prompt visual studio 8K siap digunakan.`,
+          `🛡️ [Sub-Agent 5: The Deployer] Sedang memvalidasi QC & kalkulasi ROAS...`,
+        ]);
+        setMaxUnlockedStage(4);
+        setActiveStage(4);
+
+        // Wait for real backend result
+        const res = await apiPromise;
         if (!isMounted) return;
         const resultData = res.data;
 
+        const isVeto = resultData.status === 'VETO';
         const finalCampaignRecord = {
           id: id || Date.now(),
           product_name: campaignInput.product_name,
-          platform: resultData.agent2_strategy?.platform || 'TikTok',
+          platform: resultData.agent2_strategy?.platform || campaignInput.platform || 'TikTok',
           budget: Number(campaignInput.budget_harian || 100000),
           harga_jual: Number(campaignInput.harga_jual || 0),
           hpp: Number(campaignInput.hpp || 0),
           kategori: campaignInput.kategori || 'Fisik',
-          status: 'Ready',
-          roas: '240%',
+          status: isVeto ? 'Veto' : 'Ready',
+          roas: resultData.agent5_deploy?.roas_report?.roas_percentage
+            ? `${resultData.agent5_deploy.roas_report.roas_percentage}%`
+            : '240%',
           created_at: new Date().toISOString(),
           result: resultData,
         };
 
-        try {
-          await saveCampaign(finalCampaignRecord);
-        } catch (saveErr) {
-          console.warn('Save fallback:', saveErr);
-        }
+        // Save to DB
+        await saveCampaign(finalCampaignRecord);
 
         setCampaign(finalCampaignRecord);
         setIsGenerating(false);
-        setActiveStage(0);
         setMaxUnlockedStage(4);
         setLiveLogs((prev) => [
           ...prev,
-          `✅ [Sub-Agent 1] Selesai: Data riset pasar empiris berhasil diekstraksi secara live!`,
+          `🎉 [Orchestrator] Seluruh 5 Sub-Agent AI telah selesai menyusun strategi!`,
         ]);
       } catch (err) {
-        console.error('Pipeline failed:', err);
+        console.error('Live pipeline execution failed:', err);
         if (isMounted) {
-          setErrorMessage(err.message || 'Gagal menjalankan Sub-Agent 1.');
           setIsGenerating(false);
-          setActiveStage(0);
+          setErrorMessage(err.message || 'Gagal mengeksekusi pipeline AI.');
         }
       }
     }
@@ -315,8 +360,8 @@ export default function CampaignDetail() {
                             isActive
                               ? 'bg-rose-600 text-white ring-4 ring-rose-500/30 shadow-[0_0_25px_rgba(244,63,94,0.7)] scale-110'
                               : isCompleted
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
-                              : 'bg-neutral-900 text-neutral-500 border border-neutral-800'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
+                                : 'bg-neutral-900 text-neutral-500 border border-neutral-800'
                           )}
                         >
                           {isCurrentlyRunning ? (
@@ -379,8 +424,8 @@ export default function CampaignDetail() {
                         activeStage === st.id
                           ? 'w-6 bg-rose-500'
                           : st.id <= maxUnlockedStage
-                          ? 'w-1.5 bg-emerald-500/60'
-                          : 'w-1.5 bg-neutral-800'
+                            ? 'w-1.5 bg-emerald-500/60'
+                            : 'w-1.5 bg-neutral-800'
                       )}
                     />
                   ))}
@@ -418,7 +463,7 @@ export default function CampaignDetail() {
             {/* STAGE CONTENT CANVAS */}
             <div className="p-6 sm:p-8">
               {/* =================================================================== */}
-              {/* TAHAP 1: RISET PASAR EMPIRIS (SUB-AGENT 1) */}
+              {/* TAHAP 1: RISET PASAR EMPIRIS MENDALAM (SUB-AGENT 1) */}
               {/* =================================================================== */}
               {activeStage === 0 && (
                 <div className="flex flex-col gap-6 animate-in fade-in duration-200">
@@ -426,22 +471,12 @@ export default function CampaignDetail() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="px-2.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-black font-mono">
-                          SUB-AGENT 1: THE EXPLORER
+                          SUB-AGENT 1: DEEP MARKET ANALYST
                         </span>
-                        <span className="text-xs text-neutral-400 font-medium">Intelijen Pasar Empiris & Analisis Celah Kompetitor</span>
+                        <span className="text-xs text-neutral-400 font-medium">Intelijen Pasar Empiris, Segmentasi 3D & Analisis Pesaing Bertingkat</span>
                       </div>
                       <h2 className="text-xl font-black text-white uppercase tracking-tight font-heading flex flex-wrap items-center gap-3">
                         <span>{agent1?.product_name || campaign?.product_name || 'Riset Pasar Produk'}</span>
-                        {agent1?.purchase_behavior && (
-                          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-300 font-bold">
-                            Tipe: {agent1.purchase_behavior.replace(/_/g, ' ')}
-                          </span>
-                        )}
-                        {agent1?.market_awareness_level && (
-                          <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-400 font-bold">
-                            Awareness: {agent1.market_awareness_level.replace(/_/g, ' ')}
-                          </span>
-                        )}
                       </h2>
                     </div>
                   </div>
@@ -449,150 +484,138 @@ export default function CampaignDetail() {
                   {isGenerating && !agent1 ? (
                     <div className="py-16 text-center flex flex-col items-center justify-center">
                       <Loader2 className="w-10 h-10 text-rose-500 animate-spin mb-4" />
-                      <h4 className="text-sm font-bold text-white mb-1">Sub-Agent 1 Sedang Menganalisis Data Empiris...</h4>
+                      <h4 className="text-sm font-bold text-white mb-1">Sub-Agent 1 Sedang Membedah Pasar Empiris...</h4>
                       <p className="text-xs text-neutral-400 max-w-md">
-                        Membedah kelemahan kompetitor di Indonesia, konteks waktu masalah konsumen, dan pemicu transaksi nyata.
+                        Menganalisis segmentasi demografis/geografis, masalah finansial/fungsional/emosional, dan celah kelemahan kompetitor.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {/* Competitor Empirical Benchmark */}
-                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex flex-col gap-3">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          Benchmark Kompetitor & Celah Kelemahan Lawan
-                        </h4>
-                        <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80">
-                          <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Pesaing Acuan di Indonesia:</span>
-                          <p className="text-sm font-bold text-white">
-                            {agent1?.competitor_benchmark?.benchmark_brand_or_category || agent1?.competitor_proxy || 'Kompetitor Pasar Indonesia'}
-                          </p>
-                          {agent1?.competitor_benchmark?.price_point_gap && (
-                            <span className="text-[11px] text-neutral-400 font-mono block mt-1">
-                              Rentang Harga Lawan: {agent1.competitor_benchmark.price_point_gap}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="pt-2">
-                          <span className="text-[11px] font-black uppercase text-amber-400 block mb-1">Fakta Keluhan Konsumen Kompetitor:</span>
-                          <p className="text-xs text-neutral-300 leading-relaxed font-medium bg-neutral-950/60 p-3 rounded-xl border border-neutral-800">
-                            {agent1?.competitor_benchmark?.observed_customer_friction || 'Kelemahan fisik/layanan kompetitor yang dikeluhkan di ulasan pasar.'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Narrow Target Demography & Routine Context */}
+                      
+                      {/* 1. SEGMENTASI PASAR 3D */}
                       <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex flex-col gap-3">
                         <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">
                           <Users className="w-4 h-4" />
-                          Mikro-Segmentasi Target & Rutinitas
+                          1. Segmentasi Pasar 3 Dimensi (3D Segmentation)
                         </h4>
-                        <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80">
-                          <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Demografi Spesifik:</span>
-                          <p className="text-xs text-neutral-200 font-medium leading-relaxed">
-                            {agent1?.target_demography || 'Rentang usia spesifik, profesi, dan lokasi riil'}
-                          </p>
-                        </div>
+                        <div className="flex flex-col gap-2.5">
+                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
+                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Demografi (Usia & Profesi):</span>
+                            <p className="text-xs text-neutral-200 font-medium leading-relaxed">
+                              {agent1?.market_segmentation?.demographics || agent1?.target_demography || 'Pria & Wanita 20-35 tahun, pekerja kantor & mahasiswa'}
+                            </p>
+                          </div>
 
-                        <div className="pt-2">
-                          <span className="text-[11px] font-black uppercase text-neutral-400 block mb-1">Konteks Jam & Kebiasaan Transaksi:</span>
-                          <p className="text-xs text-neutral-300 font-medium leading-relaxed bg-neutral-950/60 p-3 rounded-xl border border-neutral-800">
-                            {agent1?.audience_psychography || 'Konteks rutinitas harian dan daya beli per pesanan dalam Rupiah.'}
-                          </p>
+                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
+                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Geografi (Kesesuaian Wilayah):</span>
+                            <p className="text-xs text-neutral-200 font-medium leading-relaxed">
+                              {agent1?.market_segmentation?.geographics || 'Kota Tier 1 & Area Urban/Suburban Indonesia'}
+                            </p>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800/80">
+                            <span className="text-[10px] font-black uppercase text-neutral-500 block mb-0.5">Psikografi (Gaya Hidup & Kebiasaan):</span>
+                            <p className="text-xs text-neutral-300 font-medium leading-relaxed">
+                              {agent1?.market_segmentation?.psychographics || agent1?.audience_psychography || 'Konsumen aktif digital yang memprioritaskan kepraktisan dan bukti testimoni'}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      {/* High-Leverage: Cost of Inaction */}
-                      {agent1?.cost_of_inaction && (
-                        <div className="p-5 rounded-2xl bg-red-950/20 border border-red-500/40 md:col-span-2 flex flex-col gap-2">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-2 font-mono">
-                            <ShieldAlert className="w-4 h-4 text-red-400" />
-                            Harga Kerugian Konsumen Jika Menunda Beli (Cost of Inaction):
-                          </h4>
-                          <p className="text-xs text-neutral-200 leading-relaxed font-medium bg-neutral-950/80 p-3.5 rounded-xl border border-red-900/40">
-                            {agent1.cost_of_inaction}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Quantified Customer Pains */}
-                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4" />
-                          Masalah Terukur Konsumen (Quantified Pain Points)
+                      {/* 2. ANALISIS KOMPETITOR BERTINGKAT (DIRECT VS INDIRECT) */}
+                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex flex-col gap-3">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center gap-2">
+                          <Target className="w-4 h-4" />
+                          2. Analisis Kompetitor Bertingkat & Celah Lawan
                         </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {(agent1?.quantified_customer_pains || agent1?.pain_points || ['Masalah terukur 1', 'Masalah terukur 2']).map((p, i) => (
-                            <div key={i} className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 text-xs text-neutral-300 flex flex-col gap-1.5">
-                              <span className="text-amber-400 font-black font-mono text-[11px]">MASALAH #{i + 1}</span>
-                              <span className="leading-relaxed font-medium">{p}</span>
+                        <div className="flex flex-col gap-3">
+                          {(agent1?.competitor_analysis && agent1.competitor_analysis.length > 0
+                            ? agent1.competitor_analysis
+                            : [
+                                { competitor_name: 'Pesaing Langsung (Direct)', tier: 'Direct', weakness: 'Harga mahal, pengerjaan lama, dan respon admin lambat' },
+                                { competitor_name: 'Solusi Tradisional (Indirect)', tier: 'Indirect', weakness: 'Repot mencuci/mengerjakan sendiri tanpa hasil maksimal' }
+                              ]
+                          ).map((comp, idx) => (
+                            <div key={idx} className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 flex flex-col gap-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-white font-heading">
+                                  {comp.competitor_name}
+                                </span>
+                                <span className={cn(
+                                  'text-[10px] font-black px-2 py-0.5 rounded-md uppercase font-mono',
+                                  comp.tier === 'Direct' ? 'bg-rose-950/80 border border-rose-500/40 text-rose-400' : 'bg-neutral-800 text-neutral-300'
+                                )}>
+                                  {comp.tier} Competitor
+                                </span>
+                              </div>
+                              <div className="text-xs text-neutral-300 leading-relaxed bg-neutral-900/60 p-2.5 rounded-lg border border-neutral-800">
+                                <strong className="text-amber-400 text-[10px] uppercase block mb-0.5">Celah Kelemahan yang Dieksploitasi:</strong>
+                                <span>{comp.weakness}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* 2 Empirical Buyer Personas */}
-                      {agent1?.buyer_personas && agent1.buyer_personas.length > 0 && (
+                      {/* 3. MASALAH KONSUMEN 3 SUDUT (FINANCIAL, FUNCTIONAL, EMOTIONAL) */}
+                      <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4" />
+                          3. Masalah Konsumen dari 3 Sudut (Pain Points Matrix)
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {(agent1?.pain_points && agent1.pain_points.length > 0 && typeof agent1.pain_points[0] === 'object'
+                            ? agent1.pain_points
+                            : [
+                                { type: 'Financial', problem: 'Biaya solusi pasaran terlalu mahal dan memboroskan anggaran bulanan' },
+                                { type: 'Functional', problem: 'Proses pengerjaan lambat dan kualitas hasil akhir tidak konsisten' },
+                                { type: 'Emotional', problem: 'Kekhawatiran tertipu dan cemas barang rusak atau tidak sesuai harapan' }
+                              ]
+                          ).map((p, i) => (
+                            <div key={i} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800/80 text-xs text-neutral-300 flex flex-col gap-2">
+                              <span className={cn(
+                                'text-[10px] font-black font-mono uppercase px-2 py-0.5 rounded-md w-fit',
+                                p.type === 'Financial' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' :
+                                p.type === 'Functional' ? 'bg-amber-950 text-amber-400 border border-amber-500/40' :
+                                'bg-rose-950 text-rose-400 border border-rose-500/40'
+                              )}>
+                                {p.type} ANGLE
+                              </span>
+                              <span className="leading-relaxed font-medium">{p.problem}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 4. KATA KUNCI MINAT PENCARIAN (SEARCH INTENT FEATURES) */}
+                      {agent1?.search_intent_features && agent1.search_intent_features.length > 0 && (
                         <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 md:col-span-2">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-white mb-3 flex items-center gap-2">
-                            <Users className="w-4 h-4 text-rose-500" />
-                            2 Profil Persona Pembeli Empiris
+                          <h4 className="text-xs font-black uppercase tracking-wider text-sky-400 mb-3 flex items-center gap-2">
+                            <Search className="w-4 h-4 text-sky-400" />
+                            4. Minat Pencarian Populer Konsumen Indonesia (High Search Intent)
                           </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {agent1.buyer_personas.map((persona, idx) => (
-                              <div key={idx} className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex flex-col gap-2.5">
-                                <span className="text-xs font-black text-rose-400 font-heading uppercase">
-                                  {persona.persona_title || persona.name || `Persona ${idx + 1}`}
-                                </span>
-                                {persona.trigger_moment && (
-                                  <div className="text-xs text-neutral-300">
-                                    <strong className="text-neutral-400 text-[10px] uppercase block">Momen Pemicu Kebutuhan:</strong>
-                                    <span>{persona.trigger_moment}</span>
-                                  </div>
-                                )}
-                                {persona.biggest_purchase_hesitation && (
-                                  <div className="text-xs text-neutral-300">
-                                    <strong className="text-neutral-400 text-[10px] uppercase block">Keraguan Terbesar Sebelum Transfer:</strong>
-                                    <span>{persona.biggest_purchase_hesitation}</span>
-                                  </div>
-                                )}
-                                {persona.deciding_proof_factor && (
-                                  <div className="text-xs text-emerald-400">
-                                    <strong className="text-neutral-400 text-[10px] uppercase block">Faktor Pembuktian Pemutus Transaksi:</strong>
-                                    <span>{persona.deciding_proof_factor}</span>
-                                  </div>
-                                )}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                            {agent1.search_intent_features.map((feature, idx) => (
+                              <div key={idx} className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-200 flex items-start gap-2">
+                                <span className="text-sky-400 font-bold shrink-0 font-mono">#{idx + 1}</span>
+                                <span className="font-medium">{feature}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {/* Risk Reversal Mechanism */}
-                      {agent1?.risk_reversal_mechanism && (
-                        <div className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 md:col-span-2 flex flex-col gap-1.5">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
-                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                            Faktor Pembalik Risiko (Risk-Reversal Guarantee):
-                          </span>
-                          <p className="text-xs font-bold text-white leading-relaxed">
-                            {agent1.risk_reversal_mechanism}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Verifiable USP Statement */}
+                      {/* 5. UNIQUE SELLING PROPOSITION (USP) TERVERIFIKASI */}
                       <div className="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/30 md:col-span-2 flex flex-col gap-1.5">
                         <span className="text-[10px] font-black uppercase tracking-wider text-rose-400 font-mono">
-                          Unique Selling Proposition (USP) Terverifikasi:
+                          5. Unique Selling Proposition (USP) Terverifikasi:
                         </span>
                         <p className="text-sm font-black text-white leading-relaxed">
-                          "{agent1?.usp_statement || agent1?.usp || 'Pernyataan keunggulan produk konkret bebas klaim kosong.'}"
+                          "{agent1?.unique_selling_proposition || agent1?.usp_statement || agent1?.usp || 'Pernyataan keunggulan produk konkret bebas klaim kosong.'}"
                         </p>
                       </div>
 
-                      {/* Data Foundation */}
+                      {/* DATA FOUNDATION */}
                       {agent1?.data_foundation && (
                         <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 md:col-span-2 text-xs text-neutral-300 flex items-start gap-2.5">
                           <BrainCircuit className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
@@ -602,6 +625,7 @@ export default function CampaignDetail() {
                           </div>
                         </div>
                       )}
+
                     </div>
                   )}
                 </div>

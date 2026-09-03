@@ -17,11 +17,8 @@ logger = logging.getLogger("tahra.main")
 async def lifespan(app: FastAPI):
     """Lifecycle events for database initialization and cleanup"""
     logger.info("Initializing database schema...")
-    try:
-        await init_db()
-        logger.info("TAHRA AI Engine initialized successfully.")
-    except Exception as e:
-        logger.warning(f"⚠️ Database init warning (falling back gracefully): {e}")
+    await init_db()
+    logger.info("TAHRA AI Engine initialized successfully.")
     yield
     logger.info("Shutting down TAHRA AI Engine...")
 

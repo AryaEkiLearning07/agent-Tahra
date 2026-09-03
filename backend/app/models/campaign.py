@@ -8,7 +8,7 @@ class CampaignModel(Base):
     __tablename__ = "campaigns"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    product_name = Column(Text, nullable=False)
+    product_name = Column(String(255), nullable=False, index=True)
     harga_jual = Column(Integer, nullable=False, default=0)
     hpp = Column(Integer, nullable=False, default=0)
     budget_harian = Column(Integer, nullable=False, default=0)

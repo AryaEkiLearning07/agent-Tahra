@@ -1,10 +1,7 @@
 import os
-import base64
 from typing import Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field
-
-_DEFAULT_FALLBACK_KEY = base64.b64decode("Z3NrX1h2anZ0VTZtRHhtZ2NPMXVkSUpXR2R5YnJGWXkzWVRZMktnZVYwREc1WEg2UjFocWRvMw==").decode()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "TAHRA AI — Enterprise Multi-Agent Engine"
@@ -14,7 +11,7 @@ class Settings(BaseSettings):
     
     # LLM Gateway Configuration
     LLM_BASE_URL: str = Field(default="https://api.groq.com/openai/v1", env="LLM_BASE_URL")
-    LLM_API_KEY: str = Field(default="", env="LLM_API_KEY")
+    LLM_API_KEY: Optional[str] = Field(default=None, env="LLM_API_KEY")
     GROQ_API_KEY: Optional[str] = Field(default=None, env="GROQ_API_KEY")
     OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
     LLM_MODEL: str = Field(default="llama-3.3-70b-versatile", env="LLM_MODEL")
@@ -23,15 +20,15 @@ class Settings(BaseSettings):
 
     @property
     def active_api_key(self) -> str:
-        key = (
-            os.getenv("LLM_API_KEY")
-            or os.getenv("GROQ_API_KEY")
+        return (
+            os.getenv("GROQ_API_KEY")
+            or os.getenv("LLM_API_KEY")
             or os.getenv("OPENAI_API_KEY")
-            or self.LLM_API_KEY
             or self.GROQ_API_KEY
+            or self.LLM_API_KEY
             or self.OPENAI_API_KEY
+            or ""
         )
-        return key if key and key.strip() else _DEFAULT_FALLBACK_KEY
     
     # Database Configuration (Defaults to local SQLite async, easily switchable to MySQL/Postgres in prod)
     DATABASE_URL: str = Field(

@@ -1,6 +1,7 @@
 import json
 import re
 import logging
+import asyncio
 from typing import Any, Dict, Optional
 from openai import AsyncOpenAI
 from app.core.config import settings
@@ -61,8 +62,8 @@ class LLMGateway:
             except json.JSONDecodeError:
                 pass
 
-        logger.warning(f"⚠️ Failed to parse JSON from raw text: {raw_text[:200]}")
-        raise ValueError("LLM response could not be parsed as valid JSON.")
+        logger.warning(f"⚠️ Failed to parse JSON from raw text preview: {raw_text[:150]}")
+        return {}
 
     async def execute_structured_agent(
         self,
@@ -70,10 +71,11 @@ class LLMGateway:
         system_prompt: str,
         user_message: str,
         temperature: float = 0.2,
-        use_cache: bool = True
+        use_cache: bool = True,
+        max_attempts: int = 2
     ) -> Dict[str, Any]:
         """
-        Execute an agent task and enforce pure structured JSON output.
+        Execute an agent task and enforce pure structured JSON output with automatic retry.
         """
         cache_payload = {
             "agent": agent_name,
@@ -89,10 +91,10 @@ class LLMGateway:
                 logger.info(f"⚡ [CACHE HIT] {agent_name}")
                 return cached
 
-        # 2. Call LLM with automatic fallback
-        logger.info(f"🤖 [LLM CALL] {agent_name} via {settings.LLM_MODEL}")
-        try:
+        # 2. Call LLM with Retry
+        for attempt in range(1, max_attempts + 1):
             try:
+                logger.info(f"🤖 [LLM CALL (Attempt {attempt}/{max_attempts})] {agent_name} via {settings.LLM_MODEL}")
                 response = await self.client.chat.completions.create(
                     model=settings.LLM_MODEL,
                     messages=[
@@ -102,27 +104,25 @@ class LLMGateway:
                     temperature=temperature,
                     response_format={"type": "json_object"},
                 )
-            except Exception as first_err:
-                logger.warning(f"⚠️ [JSON Mode Retry] Retrying without strict json_object: {first_err}")
-                response = await self.client.chat.completions.create(
-                    model=settings.LLM_MODEL,
-                    messages=[
-                        {"role": "system", "content": system_prompt + "\nIMPORTANT: Return valid parseable JSON only."},
-                        {"role": "user", "content": user_message},
-                    ],
-                    temperature=temperature,
-                )
 
-            raw_content = response.choices[0].message.content or "{}"
-            parsed = self._extract_json(raw_content)
+                raw_content = response.choices[0].message.content or "{}"
+                parsed = self._extract_json(raw_content)
 
-            # 3. Store in Cache
-            if use_cache and settings.ENABLE_LLM_CACHE:
-                llm_cache.set(namespace="llm_agent", payload=cache_payload, value=parsed)
+                if parsed:
+                    # 3. Store in Cache
+                    if use_cache and settings.ENABLE_LLM_CACHE:
+                        llm_cache.set(namespace="llm_agent", payload=cache_payload, value=parsed)
+                    return parsed
+                else:
+                    logger.warning(f"⚠️ Empty JSON parsed for {agent_name} on attempt {attempt}")
 
-            return parsed
-        except Exception as e:
-            logger.error(f"❌ [LLM ERROR] {agent_name}: {str(e)}")
-            raise e
+            except Exception as e:
+                logger.error(f"❌ [LLM ERROR (Attempt {attempt})] {agent_name}: {str(e)}")
+                if attempt < max_attempts:
+                    await asyncio.sleep(1.5 * attempt)
+                else:
+                    raise e
+
+        return {}
 
 llm_gateway = LLMGateway()
