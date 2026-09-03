@@ -7,8 +7,24 @@ import { Badge } from '../components/ui/Badge';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 
+import { useAuth } from '../context/AuthContext';
+
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const handleMulaiNgiklan = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login', {
+        state: {
+          redirect: '/dashboard',
+          message: 'Silakan masuk atau daftar akun terlebih dahulu untuk mulai membuat kampanye iklan AI.',
+        },
+      });
+    }
+  };
 
   const features = [
     {
@@ -59,23 +75,16 @@ export default function LandingPage() {
             Gantikan agensi periklanan mahal. Sistem <strong className="text-neutral-200">Multi-Agent Otonom</strong> yang membedah unit economics produk, merancang audiens & copywriting PAS, serta memprediksi laba ROAS secara matematis.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+          <div className="flex flex-col items-center justify-center max-w-xs sm:max-w-sm mx-auto">
             <Button
               size="lg"
               variant="primary"
               isFullWidth
               rightIcon={<ArrowRight className="w-5 h-5" />}
-              onClick={() => navigate('/dashboard')}
+              onClick={handleMulaiNgiklan}
+              className="py-4 text-base sm:text-lg font-black tracking-wide shadow-2xl shadow-rose-950/80 hover:shadow-rose-600/30 transition-all transform hover:-translate-y-0.5"
             >
-              Mulai Eksplorasi Dashboard
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              isFullWidth
-              onClick={() => navigate('/new')}
-            >
-              Simulasi Produk Baru
+              Mulai Ngiklan
             </Button>
           </div>
 

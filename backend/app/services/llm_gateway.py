@@ -119,9 +119,10 @@ class LLMGateway:
             except Exception as e:
                 logger.error(f"❌ [LLM ERROR (Attempt {attempt})] {agent_name}: {str(e)}")
                 if attempt < max_attempts:
-                    await asyncio.sleep(1.5 * attempt)
+                    await asyncio.sleep(1.0 * attempt)
                 else:
-                    raise e
+                    logger.warning(f"⚠️ [LLM RECOVERY] Upstream connection issue for {agent_name}: {e}. Returning safe fallback.")
+                    return {}
 
         return {}
 
