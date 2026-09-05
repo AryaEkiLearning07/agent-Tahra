@@ -24,19 +24,19 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-dashed border-neutral-800 bg-neutral-950/40 p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-8 backdrop-blur-sm',
+        'rounded-3xl border border-dashed border-emerald-300 dark:border-emerald-700/80 bg-white/90 dark:bg-[#0c1f17]/90 p-12 text-center flex flex-col items-center justify-center max-w-lg mx-auto my-8 backdrop-blur-md shadow-sm',
         className
       )}
     >
-      <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-4 shadow-[0_0_25px_rgba(244,63,94,0.15)]">
+      <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-emerald-700 dark:text-emerald-300 mb-4 shadow-sm">
         {icon || <Layers className="w-8 h-8" />}
       </div>
 
-      <h3 className="text-lg font-black tracking-tight text-white mb-2 uppercase">
+      <h3 className="text-lg font-black tracking-tight text-emerald-950 dark:text-white mb-2 uppercase font-heading">
         {title}
       </h3>
 
-      <p className="text-sm text-neutral-400 max-w-sm mb-6 leading-relaxed">
+      <p className="text-sm text-slate-600 dark:text-slate-300 max-w-sm mb-6 leading-relaxed font-medium">
         {description}
       </p>
 

@@ -5,6 +5,7 @@ from app.services.llm_gateway import llm_gateway
 from app.services.roas_calculator import roas_calculator
 from app.services.agent1_service import agent1_service
 from app.services.market_intelligence import market_intelligence_engine
+from app.services.market_research_tools import APJII_WE_ARE_SOCIAL_LOOKUP, INDUSTRY_AD_BENCHMARKS
 from app.schemas.campaign import (
     CampaignCreate,
     Agent1DeepMarketResearchOutput,

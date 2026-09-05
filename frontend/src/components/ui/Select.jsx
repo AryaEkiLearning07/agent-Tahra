@@ -3,7 +3,7 @@ import { ChevronDown, AlertCircle } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 /**
- * Production-ready Select component
+ * Production-ready Select component with Glossy Green Theme
  */
 export const Select = forwardRef(function Select(
   {
@@ -30,11 +30,11 @@ export const Select = forwardRef(function Select(
       {label && (
         <label
           htmlFor={selectId}
-          className="text-xs font-bold uppercase tracking-wider text-neutral-300 flex items-center justify-between"
+          className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center justify-between font-heading"
         >
           <span>
             {label}
-            {required && <span className="text-rose-500 ml-1 font-black">*</span>}
+            {required && <span className="text-emerald-600 ml-1 font-black">*</span>}
           </span>
         </label>
       )}
@@ -49,10 +49,10 @@ export const Select = forwardRef(function Select(
           aria-invalid={!!error}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className={cn(
-            'w-full bg-neutral-900/90 text-white text-sm font-medium rounded-xl border appearance-none px-4 py-2.5 h-11 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500/40 focus:border-rose-500 disabled:opacity-50 disabled:bg-neutral-950 disabled:cursor-not-allowed cursor-pointer',
+            'w-full bg-white text-slate-900 text-sm font-medium rounded-2xl border appearance-none px-4 py-2.5 h-11 pr-10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 disabled:opacity-50 disabled:bg-slate-50 disabled:cursor-not-allowed cursor-pointer shadow-sm',
             error
-              ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500/30'
-              : 'border-neutral-800 hover:border-neutral-700',
+              ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20'
+              : 'border-emerald-200 hover:border-emerald-300',
             className
           )}
           {...props}
@@ -62,7 +62,7 @@ export const Select = forwardRef(function Select(
                 <option
                   key={opt.value}
                   value={opt.value}
-                  className="bg-neutral-900 text-white py-2"
+                  className="bg-white text-slate-900 py-2"
                 >
                   {opt.label}
                 </option>
@@ -70,7 +70,7 @@ export const Select = forwardRef(function Select(
             : children}
         </select>
 
-        <div className="absolute right-3.5 flex items-center pointer-events-none text-neutral-400">
+        <div className="absolute right-3.5 flex items-center pointer-events-none text-emerald-700/60">
           <ChevronDown className="w-4 h-4" />
         </div>
       </div>
@@ -78,14 +78,14 @@ export const Select = forwardRef(function Select(
       {error ? (
         <p
           id={errorId}
-          className="text-xs font-semibold text-red-400 flex items-center gap-1.5 mt-0.5"
+          className="text-xs font-semibold text-red-500 flex items-center gap-1.5 mt-0.5"
           role="alert"
         >
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           <span>{error}</span>
         </p>
       ) : helperText ? (
-        <p id={helperId} className="text-xs text-neutral-500 font-medium">
+        <p id={helperId} className="text-xs text-slate-500 font-medium">
           {helperText}
         </p>
       ) : null}

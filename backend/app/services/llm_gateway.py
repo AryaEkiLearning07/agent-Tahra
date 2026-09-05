@@ -93,36 +93,46 @@ class LLMGateway:
 
         # 2. Call LLM with Retry
         for attempt in range(1, max_attempts + 1):
-            try:
-                logger.info(f"🤖 [LLM CALL (Attempt {attempt}/{max_attempts})] {agent_name} via {settings.LLM_MODEL}")
-                response = await self.client.chat.completions.create(
-                    model=settings.LLM_MODEL,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_message},
-                    ],
-                    temperature=temperature,
-                    response_format={"type": "json_object"},
-                )
+            # Try with json_object first, fallback to standard completion if unsupported
+            for use_json_mode in [True, False]:
+                try:
+                    logger.info(f"🤖 [LLM CALL (Attempt {attempt}/{max_attempts})] {agent_name} via {settings.LLM_MODEL} (json_mode={use_json_mode})")
+                    kwargs = {
+                        "model": settings.LLM_MODEL,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_message},
+                        ],
+                        "temperature": temperature,
+                    }
+                    if use_json_mode:
+                        kwargs["response_format"] = {"type": "json_object"}
 
-                raw_content = response.choices[0].message.content or "{}"
-                parsed = self._extract_json(raw_content)
+                    response = await self.client.chat.completions.create(**kwargs)
+                    raw_content = response.choices[0].message.content or "{}"
+                    parsed = self._extract_json(raw_content)
 
-                if parsed:
-                    # 3. Store in Cache
-                    if use_cache and settings.ENABLE_LLM_CACHE:
-                        llm_cache.set(namespace="llm_agent", payload=cache_payload, value=parsed)
-                    return parsed
-                else:
-                    logger.warning(f"⚠️ Empty JSON parsed for {agent_name} on attempt {attempt}")
+                    if parsed:
+                        # 3. Store in Cache
+                        if use_cache and settings.ENABLE_LLM_CACHE:
+                            llm_cache.set(namespace="llm_agent", payload=cache_payload, value=parsed)
+                        return parsed
+                    else:
+                        logger.warning(f"⚠️ Empty JSON parsed for {agent_name} on attempt {attempt}")
 
-            except Exception as e:
-                logger.error(f"❌ [LLM ERROR (Attempt {attempt})] {agent_name}: {str(e)}")
-                if attempt < max_attempts:
-                    await asyncio.sleep(1.0 * attempt)
-                else:
-                    logger.warning(f"⚠️ [LLM RECOVERY] Upstream connection issue for {agent_name}: {e}. Returning safe fallback.")
-                    return {}
+                except Exception as e:
+                    err_str = str(e).lower()
+                    if use_json_mode and ("json" in err_str or "response_format" in err_str or "400" in err_str):
+                        logger.info(f"🔄 Retrying {agent_name} without response_format param due to provider error: {e}")
+                        continue
+                    logger.error(f"❌ [LLM ERROR (Attempt {attempt})] {agent_name}: {str(e)}")
+                    break
+
+            if attempt < max_attempts:
+                await asyncio.sleep(1.0 * attempt)
+            else:
+                logger.warning(f"⚠️ [LLM RECOVERY] Upstream connection issue for {agent_name}. Returning safe fallback.")
+                return {}
 
         return {}
 

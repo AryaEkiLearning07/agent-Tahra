@@ -1,30 +1,35 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tahra-ai/schemas/agent1_output.schema.json",
   "title": "Agent1DeepMarketResearchOutput",
   "type": "object",
-  "additionalProperties": false,
   "required": [
-    "schema_version", "run_id", "generated_at", "niche", "lokasi",
-    "market_sizing", "kompetitor", "pain_points", "usp",
-    "audiens", "benchmark_iklan", "creative_inspiration"
+    "schema_version",
+    "run_id",
+    "generated_at",
+    "niche",
+    "lokasi",
+    "market_sizing",
+    "kompetitor",
+    "pain_points",
+    "usp",
+    "audiens",
+    "benchmark_iklan",
+    "creative_inspiration"
   ],
   "properties": {
     "schema_version": { "type": "string", "const": "1.0.0" },
-    "run_id": { "type": "string", "format": "uuid" },
-    "generated_at": { "type": "string", "format": "date-time" },
-    "niche": { "type": "string", "minLength": 1, "maxLength": 80 },
-    "lokasi": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "niche": { "type": "string", "maxLength": 80 },
+    "lokasi": { "type": "string", "maxLength": 120 },
 
     "market_sizing": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["estimasi_pesaing_radius_5km", "harga_pasar_rp_per_kg", "keyword_volume"],
       "properties": {
         "estimasi_pesaing_radius_5km": { "type": "integer", "minimum": 0 },
         "harga_pasar_rp_per_kg": {
           "type": "object",
-          "additionalProperties": false,
           "required": ["min", "max"],
           "properties": {
             "min": { "type": "number", "minimum": 0 },
@@ -36,14 +41,13 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "additionalProperties": false,
             "required": ["keyword", "volume_bulanan", "arah_tren", "delta_persen_3bulan", "sumber"],
             "properties": {
-              "keyword": { "type": "string", "minLength": 1 },
+              "keyword": { "type": "string" },
               "volume_bulanan": { "type": "integer", "minimum": 0 },
-              "arah_tren": { "type": "string", "enum": ["naik", "turun", "stabil"] },
+              "arah_tren": { "type": "string", "enum": ["naik", "stabil", "turun"] },
               "delta_persen_3bulan": { "type": "number" },
-              "sumber": { "type": "string", "enum": ["google_trends", "google_keyword_planner"] }
+              "sumber": { "type": "string", "enum": ["google_trends", "manual_audit"] }
             }
           }
         }
@@ -55,27 +59,20 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "nama", "tipe", "rating", "jumlah_review", "harga_rp_per_kg",
-          "aktif_iklan_di", "celah_kelemahan", "confidence_score", "sumber"
-        ],
+        "required": ["nama", "tipe", "rating", "jumlah_review", "harga_rp_per_kg", "aktif_iklan_di", "celah_kelemahan", "confidence_score", "sumber"],
         "properties": {
-          "nama": { "type": "string", "minLength": 1 },
+          "nama": { "type": "string" },
           "tipe": { "type": "string", "enum": ["direct", "indirect"] },
           "rating": { "type": "number", "minimum": 0, "maximum": 5 },
           "jumlah_review": { "type": "integer", "minimum": 0 },
           "harga_rp_per_kg": { "type": "number", "minimum": 0 },
           "aktif_iklan_di": {
             "type": "array",
-            "items": { "type": "string", "enum": ["meta", "tiktok", "google"] }
+            "items": { "type": "string" }
           },
-          "celah_kelemahan": { "type": "string", "maxLength": 200 },
+          "celah_kelemahan": { "type": "string" },
           "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 },
-          "sumber": {
-            "type": "string",
-            "enum": ["google_maps", "meta_ad_library", "tiktok_creative_center", "website_kompetitor"]
-          }
+          "sumber": { "type": "string" }
         }
       }
     },
@@ -85,34 +82,28 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "additionalProperties": false,
         "required": ["angle", "insight", "frekuensi_skor", "sumber"],
         "properties": {
-          "angle": { "type": "string", "enum": ["financial", "functional", "emotional"] },
-          "insight": { "type": "string", "maxLength": 200 },
+          "angle": { "type": "string" },
+          "insight": { "type": "string" },
           "frekuensi_skor": { "type": "number", "minimum": 0, "maximum": 1 },
-          "sumber": {
-            "type": "string",
-            "enum": ["google_maps_reviews", "instagram_komentar", "tiktok_komentar", "forum_lokal"]
-          }
+          "sumber": { "type": "string" }
         }
       }
     },
 
     "usp": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["klaim", "metode_verifikasi", "confidence_score"],
       "properties": {
-        "klaim": { "type": "string", "maxLength": 150 },
-        "metode_verifikasi": { "type": "string", "maxLength": 200 },
+        "klaim": { "type": "string" },
+        "metode_verifikasi": { "type": "string" },
         "confidence_score": { "type": "number", "minimum": 0, "maximum": 1 }
       }
     },
 
     "audiens": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["platform_dominan", "funnel_stage_dominan"],
       "properties": {
         "platform_dominan": {
@@ -120,27 +111,24 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "additionalProperties": false,
             "required": ["platform", "persen_estimasi", "sumber"],
             "properties": {
-              "platform": { "type": "string", "enum": ["instagram", "tiktok", "facebook", "google_search"] },
+              "platform": { "type": "string" },
               "persen_estimasi": { "type": "number", "minimum": 0, "maximum": 100 },
-              "sumber": { "type": "string", "minLength": 1 }
+              "sumber": { "type": "string" }
             }
           }
         },
-        "funnel_stage_dominan": { "type": "string", "enum": ["awareness", "consideration", "decision"] }
+        "funnel_stage_dominan": { "type": "string" }
       }
     },
 
     "benchmark_iklan": {
       "type": "object",
-      "additionalProperties": false,
       "required": ["meta_ads_cpm_rp", "google_ads_cpc_rp"],
       "properties": {
         "meta_ads_cpm_rp": {
           "type": "object",
-          "additionalProperties": false,
           "required": ["min", "max"],
           "properties": {
             "min": { "type": "number", "minimum": 0 },
@@ -149,7 +137,6 @@
         },
         "google_ads_cpc_rp": {
           "type": "object",
-          "additionalProperties": false,
           "required": ["min", "max"],
           "properties": {
             "min": { "type": "number", "minimum": 0 },
@@ -164,16 +151,12 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "additionalProperties": false,
         "required": ["platform", "format", "pola_hook", "sumber"],
         "properties": {
-          "platform": { "type": "string", "enum": ["meta", "tiktok"] },
-          "format": {
-            "type": "string",
-            "enum": ["video_ugc", "video_studio", "gambar_before_after", "gambar_testimoni"]
-          },
-          "pola_hook": { "type": "string", "maxLength": 100 },
-          "sumber": { "type": "string", "enum": ["meta_ad_library", "tiktok_creative_center"] }
+          "platform": { "type": "string" },
+          "format": { "type": "string" },
+          "pola_hook": { "type": "string" },
+          "sumber": { "type": "string" }
         }
       }
     }

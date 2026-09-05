@@ -63,8 +63,19 @@ export async function runAgentPipeline(campaignInput) {
       lokasi: campaignInput.lokasi || 'Indonesia',
       harga_jual: Number(campaignInput.harga_jual),
       hpp: Number(campaignInput.hpp),
-      budget_harian: Number(campaignInput.budget_harian || 100000),
+      budget_harian: Number(campaignInput.budget_harian || campaignInput.budget || 100000),
       kategori: campaignInput.kategori || 'Fisik',
+      sub_kategori: campaignInput.sub_kategori || null,
+      target_lokasi_type: campaignInput.target_lokasi_type || 'nasional',
+      target_lokasi_radius_km: campaignInput.target_lokasi_radius_km || null,
+      target_provinces: campaignInput.target_provinces || null,
+      target_cities: campaignInput.target_cities || null,
+      kondisi_bisnis: campaignInput.kondisi_bisnis || null,
+      funnel_goal: campaignInput.funnel_goal || 'awareness',
+      budget_period: campaignInput.budget_period || 'daily',
+      link_produk: campaignInput.link_produk || null,
+      social_media_handles: campaignInput.social_media_handles || null,
+      previous_platforms: campaignInput.previous_platforms || null,
       platform: campaignInput.platform || 'TikTok',
       custom_usp: campaignInput.custom_usp || null,
     }, { timeout: 60000 });
@@ -90,6 +101,17 @@ export async function saveCampaign(campaignData) {
       hpp: Number(campaignData.hpp || 0),
       budget_harian: Number(campaignData.budget_harian || campaignData.budget || 100000),
       kategori: campaignData.kategori || 'Fisik',
+      sub_kategori: campaignData.sub_kategori || null,
+      target_lokasi_type: campaignData.target_lokasi_type || 'nasional',
+      target_lokasi_radius_km: campaignData.target_lokasi_radius_km || null,
+      target_provinces: campaignData.target_provinces || null,
+      target_cities: campaignData.target_cities || null,
+      kondisi_bisnis: campaignData.kondisi_bisnis || null,
+      funnel_goal: campaignData.funnel_goal || 'awareness',
+      budget_period: campaignData.budget_period || 'daily',
+      link_produk: campaignData.link_produk || null,
+      social_media_handles: campaignData.social_media_handles || null,
+      previous_platforms: campaignData.previous_platforms || null,
       platform: campaignData.platform || 'TikTok',
       custom_usp: campaignData.custom_usp || null,
     }, { timeout: 10000 });
@@ -103,4 +125,56 @@ export async function saveCampaign(campaignData) {
   }
 }
 
+/**
+ * User Login Authentication via FastAPI Backend
+ */
+export async function loginUser(credentials) {
+  try {
+    const response = await axios.post(`${API_BASE}/api/v1/auth/login`, {
+      email: credentials.email,
+      password: credentials.password,
+    }, { timeout: 15000 });
 
+    return response.data;
+  } catch (err) {
+    const detail = err.response?.data?.detail || err.message || 'Gagal masuk ke platform.';
+    throw new Error(detail);
+  }
+}
+
+/**
+ * User Registration via FastAPI Backend
+ */
+export async function registerUser(userData) {
+  try {
+    const response = await axios.post(`${API_BASE}/api/v1/auth/register`, {
+      email: userData.email,
+      password: userData.password,
+      name: userData.name,
+      company: userData.company,
+      whatsapp: userData.whatsapp || null,
+    }, { timeout: 15000 });
+
+    return response.data;
+  } catch (err) {
+    const detail = err.response?.data?.detail || err.message || 'Gagal mendaftarkan akun.';
+    throw new Error(detail);
+  }
+}
+
+/**
+ * Fetch Current Authenticated User Profile
+ */
+export async function getCurrentUser(token) {
+  try {
+    const response = await axios.get(`${API_BASE}/api/v1/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 10000,
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.detail || 'Sesi login tidak valid.');
+  }
+}

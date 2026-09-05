@@ -4,13 +4,24 @@ from typing import List, Optional, Literal, Dict, Any, Union
 from pydantic import BaseModel, Field, field_validator
 
 class CampaignCreate(BaseModel):
-    product_name: str = Field(..., min_length=2, max_length=255, description="Nama lengkap produk / niche UMKM")
+    product_name: str = Field(..., min_length=2, max_length=500, description="Nama lengkap produk / deskripsi usaha")
     niche: Optional[str] = Field(default=None, description="Spesifikasi niche/kategori usaha")
     lokasi: Optional[str] = Field(default="Indonesia", description="Kota atau target wilayah pemasaran")
     harga_jual: int = Field(..., gt=0, description="Harga jual produk ke konsumen")
     hpp: int = Field(..., gt=0, description="Harga Pokok Penjualan / Modal per unit")
     budget_harian: int = Field(default=100000, ge=10000, description="Budget iklan harian dalam Rupiah")
-    kategori: str = Field(default="Fisik", description="Kategori produk")
+    kategori: str = Field(default="Fisik", description="Kategori produk utama")
+    sub_kategori: Optional[str] = Field(default=None, description="Sub-kategori produk 2-level taxonomy")
+    target_lokasi_type: Optional[str] = Field(default="nasional", description="Tipe jangkauan: 'nasional', 'radius', 'kota', 'internasional'")
+    target_lokasi_radius_km: Optional[int] = Field(default=None, description="Radius jangkauan lokal dalam KM jika tipe radius")
+    target_provinces: Optional[List[str]] = Field(default=None, description="Daftar provinsi target spesifik")
+    target_cities: Optional[List[str]] = Field(default=None, description="Daftar kota target spesifik")
+    kondisi_bisnis: Optional[str] = Field(default=None, description="Kondisi bisnis riil saat ini (bahasa manusiawi)")
+    funnel_goal: Optional[str] = Field(default="awareness", description="Tahap funnel: 'awareness', 'consideration', 'leads', 'sales', 'retargeting', 'auto'")
+    budget_period: Optional[str] = Field(default="daily", description="'daily' atau 'monthly'")
+    link_produk: Optional[str] = Field(default=None, description="Link marketplace atau website produk")
+    social_media_handles: Optional[Dict[str, str]] = Field(default=None, description="Akun Instagram, TikTok, WhatsApp bisnis")
+    previous_platforms: Optional[List[str]] = Field(default=None, description="Platform iklan yang sudah pernah dicoba")
     platform: Optional[str] = Field(default="TikTok", description="Preferensi platform awal")
     custom_usp: Optional[str] = Field(default=None, description="Input manual klaim keunggulan/USP dari pemilik bisnis")
 
@@ -23,21 +34,32 @@ class CampaignCreate(BaseModel):
         return v
 
     def get_effective_niche(self) -> str:
+        if self.sub_kategori and self.sub_kategori.strip():
+            return f"{self.niche or self.product_name} ({self.sub_kategori})"
         if self.niche and self.niche.strip():
             return self.niche.strip()
         return self.product_name.strip()
 
     def get_effective_lokasi(self) -> str:
+        if self.target_lokasi_type == "radius" and self.target_lokasi_radius_km:
+            return f"{self.lokasi} (Radius {self.target_lokasi_radius_km} km)"
+        if self.target_cities and len(self.target_cities) > 0:
+            return ", ".join(self.target_cities[:3])
         if self.lokasi and self.lokasi.strip():
             return self.lokasi.strip()
         return "Indonesia"
 
 class Agent1ResearchRequest(BaseModel):
-    niche: str = Field(..., min_length=1, max_length=80, description="Niche produk/usaha")
-    lokasi: str = Field(default="Indonesia", min_length=1, max_length=120, description="Lokasi/kota")
+    niche: str = Field(..., min_length=1, max_length=200, description="Niche produk/usaha")
+    lokasi: str = Field(default="Indonesia", min_length=1, max_length=150, description="Lokasi/kota")
     harga_jual: Optional[int] = Field(default=None, gt=0, description="Estimasi harga jual jika sudah ditentukan")
     hpp: Optional[int] = Field(default=None, gt=0, description="Estimasi modal / HPP jika sudah ditentukan")
     kategori: Optional[str] = Field(default=None, description="Kategori produk")
+    sub_kategori: Optional[str] = Field(default=None, description="Sub-kategori produk")
+    kondisi_bisnis: Optional[str] = Field(default=None, description="Kondisi bisnis riil saat ini")
+    funnel_goal: Optional[str] = Field(default=None, description="Goal tahapan funnel")
+    link_produk: Optional[str] = Field(default=None, description="Link marketplace atau website")
+    social_media_handles: Optional[Dict[str, str]] = Field(default=None, description="Akun sosmed / WA bisnis")
     custom_usp: Optional[str] = Field(default=None, description="Klaim keunggulan dari pemilik bisnis jika ada")
 
 # --- STRICT SCHEMA DRAFT 2020-12 AGENT 1: DEEP MARKET RESEARCH ---
@@ -100,7 +122,7 @@ class BenchmarkIklan(BaseModel):
 class CreativeInspirationItem(BaseModel):
     platform: Literal["meta", "tiktok"] = Field(..., description="Platform iklan inspirasi")
     format: Literal["video_ugc", "video_studio", "gambar_before_after", "gambar_testimoni"] = Field(..., description="Format konten iklan")
-    pola_hook: str = Field(..., max_length=100, description="Pola hook pembuka iklan")
+    pola_hook: str = Field(..., max_length=500, description="Pola hook pembuka iklan")
     sumber: Literal["meta_ad_library", "tiktok_creative_center"] = Field(..., description="Sumber inspirasi iklan")
 
 # COMPLETE SUB-AGENT 1 DEEP MARKET RESEARCH MODEL (Complies with agent1_output_schema.json)

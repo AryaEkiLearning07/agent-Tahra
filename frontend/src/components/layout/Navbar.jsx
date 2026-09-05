@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, LogOut, User, Menu, X, Sparkles, LayoutDashboard, Home } from 'lucide-react';
+import { Plus, LogOut, Menu, X, LayoutDashboard, Home, Sun, Moon } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { useAuth } from '../../context/AuthContext';
-import { cn } from '../../utils/cn';
-
 import { TahraLogo } from '../ui/TahraLogo';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { cn } from '../../utils/cn';
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme, setTheme, isDark } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -19,50 +20,27 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-neutral-950/85 backdrop-blur-2xl border-b border-rose-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
+    <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-[#08120d]/90 backdrop-blur-2xl border-b border-emerald-500/20 dark:border-emerald-500/25 shadow-[0_4px_24px_rgba(16,185,129,0.06)] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Integrated Wordmark: [T-Icon] + AHRA + .AI */}
+        {/* Integrated Brand: [Glossy T-Logo] + TAHRA + .AI */}
         <div
           onClick={() => navigate('/')}
-          className="flex items-center cursor-pointer group select-none"
+          className="flex items-center cursor-pointer group select-none gap-2.5"
         >
-          {/* Iconic Glowing T Mark */}
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neutral-900 via-neutral-950 to-black border border-rose-500/50 p-1 flex items-center justify-center shadow-[0_0_16px_rgba(244,63,94,0.35)] group-hover:scale-105 transition-transform">
-            <svg viewBox="0 0 60 60" fill="none" className="w-full h-full">
-              <defs>
-                <linearGradient id="tHead" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ff4d6d" />
-                  <stop offset="50%" stopColor="#f43f5e" />
-                  <stop offset="100%" stopColor="#e11d48" />
-                </linearGradient>
-                <linearGradient id="tBody" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ff2a55" />
-                  <stop offset="100%" stopColor="#be123c" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M 6 12 C 6 8.5 9 6 12.5 6 L 47.5 6 C 51 6 54 8.5 54 12 L 54 17 C 54 20 51.5 22 48.5 22 L 36 22 L 36 49 C 36 52 33.5 54 30.5 54 L 29.5 54 C 26.5 54 24 52 24 49 L 24 22 L 11.5 22 C 8.5 22 6 20 6 17 Z"
-                fill="url(#tHead)"
-              />
-              <polygon points="30,10 35,16 30,22 25,16" fill="#ffffff" />
-              <path d="M 12 8 L 48 8 C 50 8 51.5 9 51.5 10 L 10.5 10 C 10.5 9 11 8 12 8 Z" fill="#ffffff" opacity="0.6" />
-              <circle cx="50" cy="5" r="2.5" fill="#ffffff" />
-            </svg>
-          </div>
+          <TahraLogo size="sm" className="group-hover:scale-105 transition-transform" />
 
-          {/* Connected AHRA Typography */}
-          <div className="flex items-center pl-1.5">
-            <span className="font-black text-[22px] tracking-[-0.03em] text-white leading-none font-sans">
-              AHRA
+          <div className="flex items-center">
+            <span className="font-extrabold text-[22px] tracking-[-0.03em] text-emerald-950 dark:text-white leading-none font-heading">
+              TAHRA
             </span>
-            <span className="text-rose-500 font-extrabold text-[10px] px-1.5 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30 font-mono tracking-wider ml-1.5">
+            <span className="text-emerald-700 dark:text-emerald-400 font-black text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700/60 font-mono tracking-wider ml-1.5 shadow-sm">
               .AI
             </span>
           </div>
         </div>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center gap-1 bg-neutral-900/60 p-1 rounded-xl border border-neutral-800/80">
+        <nav className="hidden md:flex items-center gap-1 bg-emerald-50/80 dark:bg-[#0f241a] p-1 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/60 shadow-inner">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -70,10 +48,10 @@ export function Navbar() {
                 key={link.path}
                 onClick={() => navigate(link.path)}
                 className={cn(
-                  'flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all',
+                  'flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
                   isActive
-                    ? 'bg-rose-500 text-white shadow-md shadow-rose-950/50'
-                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
+                    ? 'bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-700/25'
+                    : 'text-emerald-800 dark:text-emerald-300 hover:text-emerald-950 dark:hover:text-white hover:bg-white/80 dark:hover:bg-emerald-900/40'
                 )}
               >
                 {link.icon}
@@ -85,6 +63,40 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="hidden md:flex items-center gap-3">
+          {/* EXPLICIT 2-BUTTON SEGMENTED THEME TOGGLE (Terang / Gelap) */}
+          <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-[#0c1f17] border border-slate-200/80 dark:border-emerald-800/60 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setTheme('light')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer select-none font-heading',
+                !isDark
+                  ? 'bg-white text-emerald-950 shadow-md border border-emerald-300/60'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              )}
+              title="Aktifkan Mode Terang (Light Mode)"
+              aria-label="Mode Terang"
+            >
+              <Sun className={cn('w-3.5 h-3.5', !isDark ? 'text-amber-500 fill-amber-400' : 'text-slate-400')} />
+              <span>Terang</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('dark')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer select-none font-heading',
+                isDark
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-700/30'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              )}
+              title="Aktifkan Mode Gelap (Dark Mode)"
+              aria-label="Mode Gelap"
+            >
+              <Moon className={cn('w-3.5 h-3.5', isDark ? 'text-emerald-100 fill-emerald-100' : 'text-slate-400')} />
+              <span>Gelap</span>
+            </button>
+          </div>
+
           {location.pathname !== '/new' && (
             <Button
               variant="primary"
@@ -97,16 +109,16 @@ export function Navbar() {
           )}
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 pl-3 border-l border-neutral-800">
+            <div className="flex items-center gap-3 pl-3 border-l border-emerald-200 dark:border-emerald-800">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   {user?.name?.[0] || 'U'}
                 </div>
                 <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-xs font-bold text-white truncate max-w-[120px]">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate max-w-[120px]">
                     {user?.name}
                   </span>
-                  <span className="text-[10px] text-neutral-500 truncate max-w-[120px]">
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold truncate max-w-[120px]">
                     {user?.company || 'UMKM'}
                   </span>
                 </div>
@@ -117,7 +129,7 @@ export function Navbar() {
                   logout();
                   navigate('/login');
                 }}
-                className="text-neutral-400 hover:text-rose-400 p-2 rounded-lg hover:bg-neutral-900 transition-colors"
+                className="text-slate-400 hover:text-red-500 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors cursor-pointer"
                 title="Keluar"
                 aria-label="Logout"
               >
@@ -133,6 +145,15 @@ export function Navbar() {
 
         {/* Mobile Menu Trigger */}
         <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Theme Switcher Icon */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-emerald-50 dark:bg-[#0f241a] border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300"
+            aria-label="Toggle Theme"
+          >
+            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+          </button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -146,7 +167,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-neutral-950 border-b border-neutral-800 px-4 py-4 flex flex-col gap-3">
+        <div className="md:hidden bg-white/95 dark:bg-[#08120d]/95 backdrop-blur-2xl border-b border-emerald-200 dark:border-emerald-800 px-4 py-4 flex flex-col gap-3 shadow-xl">
           {navLinks.map((link) => (
             <button
               key={link.path}
@@ -154,12 +175,41 @@ export function Navbar() {
                 navigate(link.path);
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-neutral-300 hover:text-white hover:bg-neutral-900 text-left"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-emerald-950 dark:text-white hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-left"
             >
               {link.icon}
               <span>{link.label}</span>
             </button>
           ))}
+
+          {/* Mobile Theme Toggle */}
+          <div className="flex items-center justify-between p-2 rounded-2xl bg-slate-100 dark:bg-[#0c1f17] border border-slate-200 dark:border-emerald-800">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-heading">Tema Tampilan</span>
+            <div className="flex items-center p-0.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all',
+                  !isDark ? 'bg-emerald-600 text-white' : 'text-slate-500'
+                )}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                <span>Terang</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all',
+                  isDark ? 'bg-emerald-600 text-white' : 'text-slate-500'
+                )}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                <span>Gelap</span>
+              </button>
+            </div>
+          </div>
 
           <Button
             variant="primary"

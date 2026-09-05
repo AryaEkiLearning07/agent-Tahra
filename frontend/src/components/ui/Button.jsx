@@ -3,12 +3,12 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 /**
- * @typedef {'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success'} ButtonVariant
+ * @typedef {'primary' | 'accent' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success'} ButtonVariant
  * @typedef {'sm' | 'md' | 'lg'} ButtonSize
  */
 
 /**
- * Production-grade Accessible Button component
+ * Production-grade Accessible Button component with Glossy Green Theme
  * @param {Object} props
  * @param {ButtonVariant} [props.variant='primary']
  * @param {ButtonSize} [props.size='md']
@@ -35,27 +35,29 @@ export function Button({
   ...props
 }) {
   const baseStyles =
-    'inline-flex items-center justify-center font-bold tracking-tight rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-rose-500 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.98] select-none';
+    'inline-flex items-center justify-center font-bold tracking-tight rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-[0.98] select-none cursor-pointer';
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 gap-1.5 h-8',
-    md: 'text-sm px-4 py-2.5 gap-2 h-10',
-    lg: 'text-base px-6 py-3.5 gap-2.5 h-12',
+    sm: 'text-xs px-3.5 py-1.5 gap-1.5 h-9',
+    md: 'text-sm px-5 py-2.5 gap-2 h-11',
+    lg: 'text-base px-7 py-3.5 gap-2.5 h-13',
   };
 
   const variantStyles = {
     primary:
-      'bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-500 hover:to-red-600 text-white shadow-lg shadow-rose-900/30 hover:shadow-rose-600/40 border border-rose-500/30',
+      'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-700/25 hover:shadow-emerald-600/40 border-t border-white/40 border-b border-emerald-700/40',
+    accent:
+      'bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-700 hover:from-emerald-400 hover:to-teal-600 text-white shadow-xl shadow-emerald-800/30 hover:shadow-emerald-500/45 border-t border-white/50 border-b border-emerald-800/50',
     secondary:
-      'bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 hover:border-neutral-700 shadow-sm',
+      'bg-white/95 dark:bg-[#0f271d] hover:bg-emerald-50 dark:hover:bg-emerald-900/40 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-700/60 hover:border-emerald-300 dark:hover:border-emerald-500 shadow-sm',
     outline:
-      'bg-transparent hover:bg-rose-500/10 text-rose-400 border border-rose-500/40 hover:border-rose-500',
+      'bg-emerald-50/50 dark:bg-emerald-950/40 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700/60 hover:border-emerald-400',
     ghost:
-      'bg-transparent hover:bg-neutral-800/60 text-neutral-400 hover:text-neutral-200 border border-transparent',
+      'bg-transparent hover:bg-emerald-50/80 dark:hover:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 hover:text-emerald-950 dark:hover:text-emerald-100 border border-transparent',
     danger:
-      'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-950/50 border border-red-500/30',
+      'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white shadow-md shadow-red-700/20 border-t border-white/30',
     success:
-      'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/40 border border-emerald-500/30',
+      'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white shadow-md shadow-emerald-700/25 border-t border-white/30',
   };
 
   return (

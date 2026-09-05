@@ -21,6 +21,8 @@ AsyncSessionLocal = async_sessionmaker(
 
 async def init_db():
     """Initialize database tables"""
+    import app.models.campaign  # noqa: F401
+    import app.models.user      # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
